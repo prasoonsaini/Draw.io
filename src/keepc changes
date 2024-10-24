@@ -1,0 +1,169 @@
+import React, { useRef, useState, useEffect } from 'react';
+import rough from 'roughjs/bin/rough';
+import getClickedRecIndex from '../helpers/getClickedRecIndex';
+import getClickedCircIndex from '../helpers/getClickedCircIndex';
+import getClickedArrowIndex from '../helpers/getClickedArrowIndex';
+import getClickedHandIndex from '../helpers/getClickedHandIndex';
+import resizeBorder from '../shapes changes/resizableBorder';
+
+function handleSelectDown(canvasRef,e,currentShape,setCurrentShape,setIsDragging,setDraggingIndex,setStartPos,allshapes,setAllshapes) {
+  const canvas = canvasRef.current;
+  const ctx = canvas.getContext('2d');
+  const roughCanvas = rough.canvas(canvas);
+
+  // Clear the canvas before redrawing
+  // ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // // Redraw all shapes without borders
+  // allshapes.forEach(sh => {
+  //   if(sh && sh.shape === 'rec')
+  //   {
+  //     roughCanvas.rectangle(sh.x, sh.y, sh.width, sh.height, {
+  //       stroke: 'black',
+  //       fillStyle: 'cross-hatch', 
+  //       fillWeight: 1,
+  //       fill: 'red',
+  //       strokeWidth: 2,
+  //       roughness: 1,
+  //       seed: 12345,
+  //       roughness: 1,          // Controls how rough the edges are
+  //       bowing: 1,            // Controls the wobbliness of the lines
+  //       curveStepCount: 1000 
+  //     });
+  //   } 
+  //   if(sh && sh.shape === 'cir')
+  //   {
+  //     roughCanvas.circle(sh.x, sh.y, sh.diameter, {
+  //       stroke: 'black',
+  //       strokeWidth: 1,
+  //       fillStyle: 'dots',
+  //       fill: 'green',
+  //       fillWeight: 1,
+  //       roughness: 0,
+  //       seed: 12345
+  //     });
+  //   } 
+  //   if(sh && sh.shape === 'line') {
+  //     roughCanvas.line(sh.startX, sh.startY, sh.endX, sh.endY,{
+  //       seed: 12345
+  //     });
+  //     const arrowHeadLength = 20;
+  //     const angle = Math.atan2(sh.endY - sh.startY, sh.endX - sh.startX);
+
+  //     // Left part of the arrowhead
+  //     roughCanvas.line(
+  //       sh.endX,
+  //       sh.endY,
+  //       sh.endX - arrowHeadLength * Math.cos(angle - Math.PI / 6),
+  //       sh.endY - arrowHeadLength * Math.sin(angle - Math.PI / 6),
+  //       {seed: 12345}
+  //     );
+
+  //     // Right part of the arrowhead
+  //     roughCanvas.line(
+  //       sh.endX,
+  //       sh.endY,
+  //       sh.endX - arrowHeadLength * Math.cos(angle + Math.PI / 6),
+  //       sh.endY - arrowHeadLength * Math.sin(angle + Math.PI / 6),
+  //       {seed: 12345}
+  //     );
+  //   };
+  //   if(sh && sh.shape === 'hand') {
+  //     const points = sh.points
+  //     for(let i=0;i<points.length-1;i++)
+  //     {
+  //       roughCanvas.line(points[i].x,points[i].y,points[i+1].x,points[i+1].y,{
+  //         stroke: "black",
+  //         strokeWidth: 1,
+  //         seed: 12345
+  //       });
+  //     }
+  //   }
+  // })
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  // Check if the user is clicking inside an existing shape for dragging
+  let shapeIndex = -1;
+  shapeIndex = Math.max(
+    getClickedRecIndex(mouseX, mouseY, allshapes),
+    Math.max(
+      getClickedCircIndex(mouseX, mouseY, allshapes),
+      Math.max(
+        getClickedArrowIndex(mouseX, mouseY, allshapes),
+        getClickedHandIndex(mouseX, mouseY, allshapes)
+      )
+    )
+  );
+  
+  if (shapeIndex >= 0) {
+    // Add a border to the selected shape
+    const temp = allshapes.map((shape, index) => {
+      // Update the clicked shape's `current` property to true, others to false
+      if (index === shapeIndex) {
+        return { ...shape, current: true };
+      }
+      return { ...shape, current: false };
+    });
+    // if(selectedShape.shape === 'rec') {
+    //   resizeBorder({canvasRef,x: selectedShape.x-10,y: selectedShape.y-10, width: selectedShape.width+20, height: selectedShape.height+20})
+    // }
+    // else if(selectedShape.shape === 'cir') {
+    //   resizeBorder({canvasRef,x: selectedShape.x-selectedShape.diameter/2-10,y: selectedShape.y-selectedShape.diameter/2-10, width: selectedShape.diameter+20, height: selectedShape.diameter+20})
+    // }
+    setIsDragging(true);
+    setDraggingIndex(shapeIndex);
+    setStartPos({ x: mouseX, y: mouseY });
+  }
+}
+
+export default handleSelectDown;
+
+
+{/* <h3>Customize Shape</h3>
+            <div className="customizeItem">
+                <label htmlFor="stroke">Stroke Color</label>
+                <input
+                    type="color"
+                    id="stroke"
+                    onChange={(e) => onStrokeChange(e.target.value)}
+                />
+            </div>
+
+            <div className="customizeItem">
+                <label htmlFor="background">Background Color</label>
+                <input
+                    type="color"
+                    id="background"
+                    onChange={(e) => onBackgroundChange(e.target.value)}
+                />
+            </div>
+
+            <div className="customizeItem">
+                <label htmlFor="strokeStyle">Stroke Style</label>
+                <select id="strokeStyle" onChange={(e) => onStrokeStyleChange(e.target.value)}>
+                    <option value="solid">Solid</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="dotted">Dotted</option>
+                </select>
+            </div>
+
+            <div className="customizeItem">
+                <label htmlFor="sloppiness">Sloppiness</label>
+                <input
+                    type="range"
+                    id="sloppiness"
+                    min="0"
+                    max="10"
+                    onChange={(e) => onSloppinessChange(e.target.value)}
+                />
+            </div>
+
+            <div className="customizeItem">
+                <label htmlFor="edges">Edges</label>
+                <select id="edges" onChange={(e) => onEdgesChange(e.target.value)}>
+                    <option value="sharp">Sharp</option>
+                    <option value="rounded">Rounded</option>
+                </select>
+            </div>
+        </div> */}
