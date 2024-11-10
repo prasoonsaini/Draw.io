@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3010:3010"
+    container_name: backend_container
+    working_dir: /app
+    command: [ "node", "server.js" ]
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    container_name: frontend_container
+    working_dir: /app
+    command: [ "npm", "run", "dev" ]
+
+  # WebSocket Service
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    container_name: websocket_container
+    working_dir: /app
+    command: [ "node", "websocket.js" ]
+
+networks:
+  default:
+    driver: bridge
+
+# docker-compose up --build

@@ -1,0 +1,71 @@
+.share-button {
+    position: absolute;
+    /* Positions it relative to the page */
+    top: 20px;
+    /* Space from the top */
+    right: 10px;
+    /* Space from the right */
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.share-button:hover {
+    background-color: #0a488b;
+}
+
+.share-widget {
+    position: absolute;
+    top: 70px;
+    right: 10px;
+    height: 30vh;
+    width: 60vh;
+    /* background: rgba(0, 0, 0, 0.5); */
+    padding: 20px;
+    border: 2px solid #007bff;
+    border-radius: 10px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+/* .overlay-content {
+    width: 30vh;
+    height: 30vh;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Close button */
+.close-button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.Launch-button {
+    margin-top: 10px;
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    height: 50px;
+    width: 150px;
+}
+
+.text-area {
+    padding: 10px;
+    width: 330px;
+    height: 50px;
+    font-size: 15px;
+
+}
