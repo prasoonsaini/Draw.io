@@ -1,5 +1,5 @@
 async function handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingIndex, setIsResizing,
-    setResizingIndex, isResizing, panning, setPanning, allshapes) {
+    setResizingIndex, isResizing, panning, setPanning, allshapes, user) {
     if (isDragging) {
         // Stop dragging
         setIsDragging(false);
@@ -8,7 +8,7 @@ async function handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingI
         for (const temp of shapes) {
             try {
                 // const i = { ...temp, userId: user }
-                const response = await fetch(`http://localhost:3010/api/shapes/${temp.shapeId}`, {
+                const response = await fetch(`http://localhost:3020/shapes/${temp.shapeId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -34,7 +34,7 @@ async function handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingI
             await Promise.all(shapes.map(async (temp) => {
                 //console.log("temp", temp);
 
-                const response = await fetch(`http://localhost:3010/api/shapes/${temp.shapeId}`, {
+                const response = await fetch(`http://localhost:3020/shapes/${temp.shapeId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

@@ -24,7 +24,7 @@ import fetchSessionStatus from './fetchSessionStatus';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 
 
-const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive }) => {
+const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, setSocket, setAllshapes, allshapes }) => {
   const canvasRef = useRef(null);
   const [rectangles, setRectangles] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -32,7 +32,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState(null);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const [allshapes, setAllshapes] = useState([])
+  // const [allshapes, setAllshapes] = useState([])
   const [shape, setShape] = useState('select')
   const [isResizing, setIsResizing] = useState(false)
   const [resizingIndex, setResizingIndex] = useState(null)
@@ -53,109 +53,81 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive }) => {
   const [zoomLevel, setZoomLevel] = useState(1); // Zoom level (1 = 100%)
   const [isPanDragging, setIsPanDragging] = useState(false); // Is the user dragging?
 
-  const [socket, setSocket] = useState(null);
-  const [isSocketOpen, setIsSocketOpen] = useState(false);
-  const prevShapesRef = useRef([]);
-  const prevShapesRefCurrent = useRef([]);
-
   const [share, setShare] = useState(false)
   const location = useLocation();
+  const prevShapesRef = useRef([]);
+  const prevShapesRefCurrent = useRef([]);
   const userId = location.pathname.includes('user=')
     ? location.pathname.split('user=')[1]
     : null;
   // const [user, setUser] = useState(null)
   // When the connection is open, notify the //console
-  useEffect(() => {
-    const fetchShapes = async () => {
-      try {
-        const response = await fetch('http://localhost:3010/api/shapes'); // Fetch shapes from the API
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        //console.log("main data", data)
-        if (user) {
-          const userShape = data.filter((sh) => {
-            if (sh.userId === user)
-              return true;
-          })
-          setAllshapes(userShape)
-        }
-        else {
-          console.log("User not found yet")
-        }
-      } catch (error) {
-        //console.error('Error fetching shapes:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchShapes = async () => {
+  //     try {
+  //       const response = await fetch(`http://localhost:3020/shapes/${user}`); // Fetch shapes from the API
 
-    fetchShapes(); // Call the fetch function
-  }, [user]); // Empty dependency array means this runs once when the component mounts
+  //       if (!response.ok) {
+  //         throw new Error('Network response was not ok');
+  //       }
+  //       const data = await response.json()
+  //       console.log("response from redis", data.shapes)
+  //       //console.log("main data", data)
+  //       setAllshapes(data.shapes)
+  //     }
+  //     catch (error) {
+  //       //console.error('Error fetching shapes:', error);
+  //     }
+  //   };
 
-  // Establish WebSocket connection when component mounts
-  useEffect(() => {
-    const newSocket = new WebSocket('ws://localhost:8080'); // Replace with your WebSocket server URL
-
-    // Track WebSocket open status
-    newSocket.onopen = () => {
-      //console.log('WebSocket connection established');
-      setIsSocketOpen(true);  // WebSocket is now open
-    };
-    console.log("use effect called")
-    setSocket(newSocket);
-
-    // Handle incoming messages from the WebSocket server
-    newSocket.onmessage = (event) => {
-      try {
-        const receivedData = JSON.parse(event.data); // Assuming the data is a JSON string
-        if (receivedData.user !== user)
-          return;
-        if (!receivedData.session)
-          createUserToken({ setUser });
-        else {
-          if (userId && fetchSessionStatus())
-            setUser(userId)
-          else
-            createUserToken({ setUser });
-        }
-        //console.log("Received data:", receivedData);
-        setAllshapes(receivedData.allshapes); // Update allshapes when data is received
-        setCurrentShape(receivedData.currentShape)
-      } catch (error) {
-        console.error('Error parsing incoming WebSocket data:', error);
-      }
-    };
-
-    // Clean up WebSocket connection when component unmounts
-    return () => {
-      newSocket.close();
-    };
-  }, [user]);
+  //   user ? fetchShapes() : null; // Call the fetch function
+  // }, [user]); // Empty dependency array means this runs once when the component mounts
 
   useEffect(() => {
-    if (isSocketOpen && socket && socket.readyState === WebSocket.OPEN) {
+    console.log("All shapes", allshapes)
+    if (!allshapes)
+      return
+    // Only send if allshapes or currentShape have changed
+    if (socket && socket.readyState === WebSocket.OPEN) {
       const prevShapes = prevShapesRef.current;  // Get the previous value of allshapes
       const prevCurrent = prevShapesRefCurrent.current
-      // Check if allshapes has changed
       const hasChanged = JSON.stringify(prevShapes) !== JSON.stringify(allshapes);
       const hasChangedCurrent = JSON.stringify(prevCurrent) !== JSON.stringify(currentShape);
       if (hasChanged || hasChangedCurrent && allshapes.length > 0) {
-        const responseData = {
-          allshapes: allshapes,
-          currentShape: currentShape,
+        const message = {
           user: user,
-          session: sessionActive
-        }
-        const jsonData = JSON.stringify(responseData); // Convert the allshapes array to JSON
-        socket.send(jsonData);  // Send the updated data to the server
-        //console.log('Data sent to server:', jsonData);
-      }
+          session: true,
+          allshapes: allshapes,
+          currentShape: currentShape
+        };
+        socket.send(JSON.stringify(message));  // Send as JSON string
 
-      // Update the previous allshapes ref with the current allshapes
-      prevShapesRef.current = allshapes;
-      prevShapesRefCurrent.current = currentShape
+        // Update the previous values to the current ones after sending
+        prevShapesRef.current = allshapes;
+        prevShapesRefCurrent.current = currentShape
+      }
     }
-  }, [allshapes, socket, isSocketOpen, currentShape, user, sessionActive]);  // Effect triggers whenever allshapes, socket, or isSocketOpen changes
+  }, [socket, user, allshapes, currentShape]);  // Add missing dependencies
+
+  useEffect(() => {
+    console.log("All shapes", allshapes)
+    if (!allshapes)
+      return
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.onmessage = async (message) => {  // Use `onmessage` instead of `.on('message')`
+        const msg = JSON.parse(message.data);  // Parse the message data
+        console.log('Received message', msg);
+
+        if (!msg.session) {
+          console.log('Received message in not session', msg);
+          await createUserToken({ setUser });
+        } else {
+          setAllshapes(msg.allshapes);
+          setCurrentShape(msg.currentShape);
+        }
+      };
+    }
+  }, [socket]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -166,16 +138,16 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive }) => {
     // Clear the canvas before re-drawing
     // const renderShapes = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const temp = allshapes.filter(sh => {
+    const temp = Array.isArray(allshapes) ? allshapes.filter(sh => {
       if (sh && sh.current === true) {
         setSelectedShape(sh)
         return true
       }
-    })
+    }) : []
     if (temp.length === 0)
       setSelected(null)
 
-    allshapes.forEach(sh => {
+    Array.isArray(allshapes) ? allshapes.forEach(sh => {
       // //console.log("pppppsasas",sh.strokeStyle)
       if (sh && sh.shape === 'rec') {
         const virtualX = sh.x - offsetX; // Adjust for horizontal panning
@@ -361,7 +333,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive }) => {
         }
       }
 
-    })
+    }) : null
 
     // Draw the current rectangle (while drawing)
 
@@ -514,8 +486,8 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive }) => {
       {/* <ActionBar tool={tool} setTool={setTool} /> */}
       <ActionBar shape={shape} setShape={setShape} />
       <ShareButton setShare={setShare} />
-      {share ? <ShareWidget user={user} sessionActive={sessionActive} setSessionActive={setSessionActive} /> : <></>}
-      {selected ? <ShapeCustomizer color={color} setColor={setColor} allshapes={allshapes} setAllshapes={setAllshapes} selected={selected} selectedShape={selectedShape} /> : <></>}
+      {share ? <ShareWidget user={user} sessionActive={sessionActive} setSessionActive={setSessionActive} setUser={setUser} socket={socket} setSocket={setSocket} /> : <></>}
+      {selected ? <ShapeCustomizer color={color} setColor={setColor} allshapes={allshapes} setAllshapes={setAllshapes} selected={selected} selectedShape={selectedShape} user={user} /> : <></>}
       <canvas
         ref={canvasRef}
         width={window.innerWidth}

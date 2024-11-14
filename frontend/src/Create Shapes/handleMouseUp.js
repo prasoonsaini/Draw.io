@@ -41,7 +41,7 @@ const handleMouseUp = async (canvasRef, isDrawing, currentShape, allshapes, setC
         console.log("temwrwrw", temp)
         // Send the POST request to create a new shape
         try {
-            const response = await fetch('http://localhost:3010/api/shapes', {
+            const response = await fetch('http://localhost:3020/shapes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

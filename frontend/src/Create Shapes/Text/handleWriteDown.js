@@ -84,7 +84,7 @@ function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, set
           try {
             temp.current = false
             temp.shapeId = Math.floor(Math.random() * 10000);
-            const response = await fetch('http://localhost:3010/api/shapes', {
+            const response = await fetch('http://localhost:3020/shapes', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -96,10 +96,10 @@ function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, set
               throw new Error('Network response was not ok');
             }
 
-            const newShape = await response.json(); // Parse the JSON response
+            const data = await response.json(); // Parse the JSON response
 
             // Update the shapes state with the newly created shape
-            setAllshapes(prevShapes => [newShape, ...prevShapes]); // Add the new shape to the beginning of the array
+            setAllshapes(prevShapes => [data.shapes, ...prevShapes]); // Add the new shape to the beginning of the array
 
           } catch (error) {
             console.error('Error creating shape:', error);

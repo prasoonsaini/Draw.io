@@ -1,6 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-
-
 const createUserToken = async ({ setUser }) => {
     console.log("createing token")
     let token = localStorage.getItem("drawingToken");

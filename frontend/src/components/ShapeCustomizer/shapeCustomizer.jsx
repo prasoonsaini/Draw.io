@@ -19,7 +19,7 @@ import Copy from './SVG/copy';
 import Delete from './SVG/delete';
 import Link from './SVG/Link';
 import { useState } from 'react';
-function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape }) {
+function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, user }) {
     const [selectedButton, setSelectedButton] = useState(null);
     async function changeColor(newColor) {
         const updatedShapes = await Promise.all(
@@ -201,10 +201,10 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape }) {
         await Promise.all(allshapes.map(async (shape) => {
             if (shape.current) {
                 console.log("shape", shape)
-                await fetch(`http://localhost:3010/api/shapes/${shape.shapeId}`, {
+                await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
                     method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'userId': user
                     }
                 });
                 return;
@@ -293,9 +293,9 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape }) {
                 </div>
                 <div className='color-parent'>
                     <button className="color" style={{ background: selectedButton === 'Slopiness1' ? '#7ee4fa' : '' }}
-                        onClick={() => handleButtonClick('Slopiness1', () => changeSlopiness(0))}><Slopiness1 /></button>
+                        onClick={() => handleButtonClick('Slopiness1', () => changeSlopiness(1))}><Slopiness1 /></button>
                     <button className="color" style={{ background: selectedButton === 'Slopiness2' ? '#7ee4fa' : '' }}
-                        onClick={() => handleButtonClick('Slopiness2', () => changeSlopiness(1))}><Slopiness2 /></button>
+                        onClick={() => handleButtonClick('Slopiness2', () => changeSlopiness(1.5))}><Slopiness2 /></button>
                     <button className="color" style={{ background: selectedButton === 'Slopiness3' ? '#7ee4fa' : '' }}
                         onClick={() => handleButtonClick('Slopiness3', () => changeSlopiness(2))}><Slopiness3 /></button>
                 </div>

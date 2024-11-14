@@ -20,6 +20,19 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
+router.get('/:userId', async (req, res) => {
+    try {
+        const allShapes = await ShapesModel.find()
+        const userShapes = allShapes.filter((shape) => {
+            return shape.userId === req.params.userId
+        })
+        console.log("user Shapes", userShapes)
+        res.status(200).json(userShapes);
+    } catch (err) {
+        console.error('Error in GET / route:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+})
 
 // 2. POST - Create a new shape
 router.post('/', async (req, res) => {

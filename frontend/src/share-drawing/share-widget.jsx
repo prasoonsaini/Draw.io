@@ -1,8 +1,9 @@
 import { useLocation } from 'react-router-dom'
 import './share.css'
 import { useEffect, useState } from 'react'
+import createUserToken from '../CreateToken'
 
-function ShareWidget({ user, sessionActive, setSessionActive }) {
+function ShareWidget({ user, sessionActive, setSessionActive, setUser, socket, setSocket }) {
 
     useEffect(() => {
         if (!user)
@@ -34,6 +35,17 @@ function ShareWidget({ user, sessionActive, setSessionActive }) {
     console.log("session active", sessionActive)
 
     async function ActivateSession() {
+        if (socket && socket.readyState === WebSocket.OPEN) {  // Check if socket is open
+            if (user) {
+                const message = {
+                    user: user,
+                    session: true
+                };
+                socket.send(JSON.stringify(message));  // Send as JSON string once connection is open
+            }
+        } else {
+            console.log("WebSocket is not open.");
+        }
         try {
             const response = await fetch(`http://localhost:3010/api/user/${user}`, {
                 method: 'PUT',
@@ -47,12 +59,32 @@ function ShareWidget({ user, sessionActive, setSessionActive }) {
                 console.log("Response not ok", response)
             }
             setSessionActive(true)
+            // createUserToken(setUser)
         } catch (error) {
             console.log(error)
         }
     }
 
     async function CloseSession() {
+        // const socket = new WebSocket('ws://localhost:8080');
+        // socket.onopen = () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {  // Check if socket is open
+            if (user) {
+                const message = {
+                    user: user,
+                    session: false
+                };
+                socket.send(JSON.stringify(message));  // Send as JSON string once connection is open
+            }
+        } else {
+            console.log("WebSocket is not open.");
+        }
+
+        // Optionally, handle WebSocket errors
+        socket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+
         try {
             const response = await fetch(`http://localhost:3010/api/user/${user}`, {
                 method: 'PUT',
@@ -60,16 +92,19 @@ function ShareWidget({ user, sessionActive, setSessionActive }) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ token: user, session: false }),
-            })
-            console.log(response)
+            });
+            console.log(response);
             if (!response.ok) {
-                console.log("Response not ok", response)
+                console.log("Response not ok", response);
             }
-            setSessionActive(false)
+            setSessionActive(false);
+            // setSocket(false)
+            // createUserToken(setUser)
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
     }
+
 
     return (
         <div className="share-widget">
