@@ -28,7 +28,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     // Update the color of the selected shape
                     const updatedShape = { ...shape, strokeColor: newColor };
                     try {
-                        const response = await fetch(`http://localhost:3010/api/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     const updatedShape = { ...shape, backgroundColor: newColor };
 
                     try {
-                        const response = await fetch(`http://localhost:3010/api/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 if (shape.current) {
                     const updatedShape = { ...shape, fillType: fillType };
                     try {
-                        const response = await fetch(`http://localhost:3010/api/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 if (shape.current) {
                     const updatedShape = { ...shape, strokeWidth: width };
                     try {
-                        const response = await fetch(`http://localhost:3010/api/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 if (shape.current) {
                     const updatedShape = { ...shape, slopiness: slopiness };
                     try {
-                        const response = await fetch(`http://localhost:3010/api/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -170,7 +170,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 if (shape.current) {
                     const updatedShape = { ...shape, strokeStyle: strokeStyle };
                     try {
-                        const response = await fetch(`http://localhost:3010/api/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -217,7 +217,35 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
         // Update the state with the filtered shapes
         setAllshapes(temp);
     }
+    async function handleEdge(curved) {
+        const updatedShapes = await Promise.all(
+            allshapes.map(async (shape) => {
+                if (shape.current) {
+                    const updatedShape = { ...shape, curved: curved };
+                    try {
+                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(updatedShape), // Send the updated shape data
+                        });
 
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                    } catch (error) {
+                        console.error('Error updating shape:', error);
+                    }
+
+                    return updatedShape; // Return the updated shape
+                }
+                return shape; // No change for shapes without `current: true`
+            })
+        );
+        console.log("UPdared shaep", updatedShapes)
+        setAllshapes(updatedShapes)
+    }
 
     return (
         <div className="customizeBar">
@@ -305,8 +333,8 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     <p>edges</p>
                 </div>
                 <div className='color-parent'>
-                    <Edge />
-                    <CurevedEdge />
+                    <button onClick={() => handleEdge(false)}><Edge /></button>
+                    <button onClick={() => handleEdge(true)}><CurevedEdge /></button>
                 </div>
             </div> : <></>}
             <div className='combo'>

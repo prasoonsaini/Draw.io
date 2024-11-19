@@ -4,14 +4,49 @@ const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: 8080 });
 
 const rooms = new Map();
+function throttle(func, limit) {
+    let lastFunc;
+    let lastRan;
+    return function (...args) {
+        const context = this;
+        if (!lastRan) {
+            func.apply(context, args);
+            lastRan = Date.now();
+        } else {
+            clearTimeout(lastFunc);
+            lastFunc = setTimeout(function () {
+                if ((Date.now() - lastRan) >= limit) {
+                    func.apply(context, args);
+                    lastRan = Date.now();
+                }
+            }, limit - (Date.now() - lastRan));
+        }
+    };
+}
+
+
+// Throttled broadcast function
+const throttledBroadcast = throttle((user, final_data, isBinary, socket) => {
+    const my_room = rooms.get(user)
+    const jsonData = JSON.parse(final_data)
+    jsonData.clientCount = my_room.size
+    const last_data = JSON.stringify(jsonData);
+    // console.log("size: ", last_data);
+
+    rooms.get(user).forEach((client) => {
+        if (client.readyState === WebSocket.OPEN && socket !== client) {
+            client.send(last_data, { binary: isBinary });
+        }
+    });
+}, 10); // Limit to one broadcast every 100ms
 
 wss.on('connection', function connect(socket) {
     socket.on('error', (err) => console.log(err));
-    console.log("Roooms", rooms)
+
     socket.on('message', function message(data, isBinary) {
         const final_data = data.toString();
-        const { user, session } = JSON.parse(data.toString());
-
+        const { user, session } = JSON.parse(final_data);
+        console.log("Received message", final_data)
         // Create a new set for the user if they don't have one
         if (!rooms.has(user)) {
             rooms.set(user, new Set());
@@ -20,12 +55,8 @@ wss.on('connection', function connect(socket) {
         // Add the socket to the user's room
         rooms.get(user).add(socket);
 
-        // Broadcast the message to all clients in the same room
-        rooms.get(user).forEach((client) => {
-            if (client.readyState === WebSocket.OPEN && socket !== client) {
-                client.send(final_data, { binary: isBinary });
-            }
-        });
+        // Use the throttled broadcast function
+        throttledBroadcast(user, final_data, isBinary, socket);
     });
 
     // When the connection closes, remove the socket from the user's room

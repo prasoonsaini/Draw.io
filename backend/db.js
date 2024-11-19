@@ -34,6 +34,7 @@ const ShapesSchema = new Schema({
     borderY: Number,
     borderWidth: Number,
     borderHeight: Number,
+    curved: Boolean,
     shapeId: { type: Number, required: true, unique: true },
     userId: { type: String, required: true },
 }, { timestamps: true });
@@ -41,6 +42,7 @@ const ShapesSchema = new Schema({
 const UserSchema = new Schema({
     token: { type: String, required: true, unique: true },
     session: { type: Boolean, default: false },
+    shareToken: { type: String },
     createdAt: { type: Date, default: Date.now }
 })
 

@@ -1,57 +1,73 @@
 .customizeBar {
-    position: fixed;
-    top: 100px;
-    /*bottom: 20px; */
-    left: 0;
-    width: 220px;
-    background-color: #f4f4f4;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-    overflow-y: auto; /* Enables scrolling if content exceeds the height */
-    z-index: 1000;
-  }
-  
-  .container {
-    display: flex;
-    justify-content: flex-start; /* Align items to the left */
-  }
+  position: fixed;
+  top: 20px;
+  /*bottom: 20px; */
+  left: 0;
+  width: 220px;
+  background-color: #f4f4f4;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  overflow-y: auto;
+  /* Enables scrolling if content exceeds the height */
+  z-index: 1000;
+}
 
-  .color-parent{
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr)); /* 5 equal columns that adjust based on parent width */
-    grid-template-rows: repeat(2, auto);   /* 2 rows, height adjusts based on content */
-    gap: 10px; /* Optional: spacing between grid items */
-    width: 100%; /* Ensure the container takes full width of its parent */
-  }
+.container {
+  display: flex;
+  justify-content: flex-start;
+  /* Align items to the left */
+}
 
-  .color{
-    /* background-color: lightblue; */
-    /* padding: 20px; */
-    text-align: center;
-    box-sizing: border-box; /* Ensure padding is included in the element's width */
-    height: 28px;
-    border-radius: 5px;
-    border: none;
-    display: flex;                /* Enable flexbox */
-    justify-content: center;      /* Center horizontally */
-    align-items: center; 
-  }
-  
-  .combo{
-    width: 100%; /* Ensure the container takes full width of its parent */
-    display: flex;                /* Enable flexbox */
-    flex-direction: column;       /* Align items vertically */
-    gap: 5px; 
-  }
+.color-parent {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /* 5 equal columns that adjust based on parent width */
+  grid-template-rows: repeat(2, auto);
+  /* 2 rows, height adjusts based on content */
+  gap: 10px;
+  /* Optional: spacing between grid items */
+  width: 100%;
+  /* Ensure the container takes full width of its parent */
+}
 
-  .mini-canvas{
-    width: 20px;                  /* Set a width for the item */
-  height: 20px;                 /* Set a height for the item */
-  display: flex;                /* Enable flexbox on the item if needed */
-  justify-content: center;      /* Center any inner content horizontally */
-  align-items: center;  
-  }
+.color {
+  /* background-color: lightblue; */
+  /* padding: 20px; */
+  text-align: center;
+  box-sizing: border-box;
+  /* Ensure padding is included in the element's width */
+  height: 28px;
+  border-radius: 5px;
+  border: none;
+  display: flex;
+  /* Enable flexbox */
+  justify-content: center;
+  /* Center horizontally */
+  align-items: center;
+}
+
+.combo {
+  width: 100%;
+  /* Ensure the container takes full width of its parent */
+  display: flex;
+  /* Enable flexbox */
+  flex-direction: column;
+  /* Align items vertically */
+  gap: 5px;
+}
+
+.mini-canvas {
+  width: 20px;
+  /* Set a width for the item */
+  height: 20px;
+  /* Set a height for the item */
+  display: flex;
+  /* Enable flexbox on the item if needed */
+  justify-content: center;
+  /* Center any inner content horizontally */
+  align-items: center;
+}

@@ -22,7 +22,7 @@ const handleMouseUp = async (canvasRef, isDrawing, currentShape, allshapes, setC
         }));
 
         // Mark the current shape as finalized
-        temp = { ...temp, current: true, shapeId: Math.floor(Math.random() * 100000), userId: user };
+        temp = { ...temp, current: false, shapeId: Math.floor(Math.random() * 100000), userId: user };
 
         // Update states
         setShape('select');

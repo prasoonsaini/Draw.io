@@ -23,7 +23,7 @@
     right: 10px;
     height: 30vh;
     width: 60vh;
-    /* background: rgba(0, 0, 0, 0.5); */
+    background: rgba(111, 104, 104, 0.5);
     padding: 20px;
     border: 2px solid #007bff;
     border-radius: 10px;
@@ -63,9 +63,40 @@
 }
 
 .text-area {
-    padding: 10px;
-    width: 330px;
-    height: 50px;
+    padding: 5px;
+    width: 300px;
+    height: 30px;
     font-size: 15px;
 
+}
+
+.copy-button {
+    margin-left: 20px;
+}
+
+.text-area-copy-parent {
+    display: flex;
+    justify-content: space-between;
+    /* Distribute space between items */
+    align-items: center;
+    /* Align items vertically at the center */
+}
+
+.sharing-button {
+    position: absolute;
+    /* Positions it relative to the page */
+    top: 20px;
+    /* Space from the top */
+    right: 10px;
+    /* Space from the right */
+    padding: 10px 20px;
+    background-color: #0a9b41;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.sharing-button:hover {
+    background-color: #065b2b;
 }

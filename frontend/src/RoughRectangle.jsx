@@ -22,6 +22,9 @@ import { v4 as uuidv4 } from 'uuid';
 import createUserToken from './CreateToken';
 import fetchSessionStatus from './fetchSessionStatus';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
+import CurvedRectangle from './CurvedEdgesRect';
+import { ControlPanel } from './components/control-panel/ControlPanel';
+// import CurvedRectangle from './CurvedEdgesRect';
 
 
 const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, setSocket, setAllshapes, allshapes }) => {
@@ -45,6 +48,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
   const [font, setFont] = useState(30)
   const [panning, setPanning] = useState(false)
   const [dsize, setdsize] = useState(1)
+  const [ShareWidgetRef, setShareWidgetRef] = useState(null)
   // --------Panning and Zooming----------
   const [offsetX, setOffsetX] = useState(0); // Horizontal offset for panning
   const [offsetY, setOffsetY] = useState(0); // Vertical offset for panning
@@ -52,11 +56,12 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
   const [startY, setStartY] = useState(0); // Mouse start position (Y)
   const [zoomLevel, setZoomLevel] = useState(1); // Zoom level (1 = 100%)
   const [isPanDragging, setIsPanDragging] = useState(false); // Is the user dragging?
-
+  const [scale, setScale] = useState(1)
   const [share, setShare] = useState(false)
   const location = useLocation();
   const prevShapesRef = useRef([]);
   const prevShapesRefCurrent = useRef([]);
+  const [clientCount, setClientCount] = useState(0)
   const userId = location.pathname.includes('user=')
     ? location.pathname.split('user=')[1]
     : null;
@@ -98,7 +103,8 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           user: user,
           session: true,
           allshapes: allshapes,
-          currentShape: currentShape
+          currentShape: currentShape,
+          clientCount: clientCount
         };
         socket.send(JSON.stringify(message));  // Send as JSON string
 
@@ -125,6 +131,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           setAllshapes(msg.allshapes);
           setCurrentShape(msg.currentShape);
         }
+        setClientCount(msg.clientCount)
       };
     }
   }, [socket]);
@@ -152,15 +159,21 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
       if (sh && sh.shape === 'rec') {
         const virtualX = sh.x - offsetX; // Adjust for horizontal panning
         const virtualY = sh.y - offsetY; // Adjust for vertical panning
-        roughCanvas.rectangle(virtualX * zoomLevel, virtualY * zoomLevel, sh.width * zoomLevel, sh.height * zoomLevel, {
-          stroke: `${sh.strokeColor}`,
-          fill: `${sh.backgroundColor}`,
-          fillStyle: `${sh.fillType}`,
-          strokeWidth: `${sh.strokeWidth * zoomLevel}`,
-          roughness: `${sh.slopiness}`,
-          strokeLineDash: sh.strokeStyle,
-          seed: 12345,
-        });
+        if (!sh.curved) {
+          roughCanvas.rectangle(virtualX * zoomLevel, virtualY * zoomLevel, sh.width * zoomLevel, sh.height * zoomLevel, {
+            stroke: `${sh.strokeColor}`,
+            fill: `${sh.backgroundColor}`,
+            fillStyle: `${sh.fillType}`,
+            strokeWidth: `${sh.strokeWidth * zoomLevel}`,
+            roughness: `${sh.slopiness}`,
+            strokeLineDash: sh.strokeStyle,
+            seed: 12345,
+          });
+        }
+        else {
+          CurvedRectangle(canvasRef, virtualX * zoomLevel, virtualY * zoomLevel, sh.width * zoomLevel, sh.height * zoomLevel, sh.strokeColor,
+            sh.backgroundColor, sh.fillType, sh.strokeWidth * zoomLevel, sh.slopiness, sh.strokeStyle)
+        }
         if (sh.current) {
           resizeBorder({ canvasRef, x: (virtualX - 5) * zoomLevel, y: (virtualY - 5) * zoomLevel, width: (sh.width + 10) * zoomLevel, height: (sh.height + 10) * zoomLevel })
           setSelected('rec')
@@ -341,18 +354,24 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
       if (shape === 'rec') {
         const virtualX = currentShape.x - offsetX; // Adjust for horizontal panning
         const virtualY = currentShape.y - offsetY;
-        roughCanvas.rectangle(virtualX * zoomLevel, virtualY * zoomLevel, currentShape.width * zoomLevel, currentShape.height * zoomLevel, {
-          stroke: `${currentShape.strokeColor}`,
-          fill: `${currentShape.backgroundColor}`,
-          fillStyle: `${currentShape.fillType}`,
-          strokeWidth: `${currentShape.strokeWidth}`,
-          strokeLineDash: currentShape.strokeStyle,
-          roughness: 1,
-          seed: 12345,
-          roughness: `${currentShape.slopiness}`,         // Controls how rough the edges are
-          bowing: 1,             // Controls the wobbliness of the lines
-          curveStepCount: 1000
-        });
+        if (!currentShape.curved) {
+          roughCanvas.rectangle(virtualX * zoomLevel, virtualY * zoomLevel, currentShape.width * zoomLevel, currentShape.height * zoomLevel, {
+            stroke: `${currentShape.strokeColor}`,
+            fill: `${currentShape.backgroundColor}`,
+            fillStyle: `${currentShape.fillType}`,
+            strokeWidth: `${currentShape.strokeWidth}`,
+            strokeLineDash: currentShape.strokeStyle,
+            roughness: 1,
+            seed: 12345,
+            roughness: `${currentShape.slopiness}`,         // Controls how rough the edges are
+            bowing: 1,             // Controls the wobbliness of the lines
+            curveStepCount: 1000
+          });
+        }
+        else {
+          CurvedRectangle(canvasRef, virtualX * zoomLevel, virtualY * zoomLevel, currentShape.width * zoomLevel, currentShape.height * zoomLevel, currentShape.strokeColor,
+            currentShape.backgroundColor, currentShape.fillType, currentShape.strokeWidth * zoomLevel, currentShape.slopiness, currentShape.strokeStyle)
+        }
         if (currentShape.current) {
           resizeBorder({ canvasRef, x: (virtualX - 10) * zoomLevel, y: (virtualY - 10) * zoomLevel, width: (currentShape.width + 20) * zoomLevel, height: (currentShape.height + 20) * zoomLevel })
           setSelected('rec')
@@ -449,45 +468,78 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
     }
     console.log(offsetX, offsetY, zoomLevel)
   }, [allshapes, currentShape, offsetX, offsetY, zoomLevel]);
+  useEffect(() => {
+    const preventHistoryNavigation = (e) => {
+      if (
+        (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) || // Alt + Arrow
+        (e.ctrlKey || e.metaKey || e.deltaX !== 0) // Gesture or Horizontal Scroll
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("wheel", preventHistoryNavigation, { passive: false });
+    // window.addEventListener("keydown", preventHistoryNavigation);
+
+    return () => {
+      window.removeEventListener("wheel", preventHistoryNavigation);
+      // window.removeEventListener("keydown", preventHistoryNavigation);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!share)
+      return
+    const handleClickOutside = (event) => {
+      if (ShareWidgetRef && ShareWidgetRef.current && !ShareWidgetRef.current.contains(event.target)) {
+        console.log("clicked outside")
+        setShare(false)
+      }
+      else
+        console.log("clicked inside")
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [share, ShareWidgetRef]);
 
 
   const handleWheel = (e) => {
-    const zoomSensitivity = 0.02; // Adjust zoom sensitivity
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
+    if (e.ctrlKey || e.metaKey || e.altKey) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
-    // Get current center position of the canvas in the viewport
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    // Calculate cursor position relative to canvas
-    const cursorX = e.clientX - rect.left;
-    const cursorY = e.clientY - rect.top;
-
-    // Calculate the current zoom ratio
-    const prevZoom = zoomLevel;
-    const newZoom = e.deltaY < 0
-      ? Math.min(zoomLevel + zoomSensitivity, 5) // Zoom in
-      : Math.max(zoomLevel - zoomSensitivity, 0.1); // Zoom out
-
-    setZoomLevel(newZoom);
-
-    // Calculate the difference in zoom ratios
-    const zoomFactor = newZoom / prevZoom;
-
-    // Adjust offset to keep canvas centered relative to the cursor
-    setOffsetX((prevOffsetX) => prevOffsetX - (cursorX - centerX) * (zoomFactor - 1));
-    setOffsetY((prevOffsetY) => prevOffsetY - (cursorY - centerY) * (zoomFactor - 1));
+    // Reverse the delta values to move shapes in the same direction as the scroll
+    setOffsetX((prevOffsetX) => (prevOffsetX + e.deltaX));
+    setOffsetY((prevOffsetY) => (prevOffsetY + e.deltaY));
   };
+
+
+  function undo() {
+
+  }
+  function redo() {
+
+  }
+  function onZoom(level) {
+    const canvas = canvasRef.current;
+    const prevZoom = zoomLevel;
+    setZoomLevel(prevZoom + level)
+    setScale(prevZoom + level)
+  }
 
 
   return (
     <div>
       {/* <ActionBar tool={tool} setTool={setTool} /> */}
       <ActionBar shape={shape} setShape={setShape} />
-      <ShareButton setShare={setShare} />
-      {share ? <ShareWidget user={user} sessionActive={sessionActive} setSessionActive={setSessionActive} setUser={setUser} socket={socket} setSocket={setSocket} /> : <></>}
+      <ShareButton setShare={setShare} sessionActive={sessionActive} notificationCount={clientCount} />
+      {share ? <ShareWidget user={user} sessionActive={sessionActive} setSessionActive={setSessionActive} setUser={setUser} socket={socket} setSocket={setSocket} setShareWidgetRef={setShareWidgetRef} /> : <></>}
       {selected ? <ShapeCustomizer color={color} setColor={setColor} allshapes={allshapes} setAllshapes={setAllshapes} selected={selected} selectedShape={selectedShape} user={user} /> : <></>}
+      <ControlPanel undo={undo} redo={redo} onZoom={onZoom} scale={scale} setScale={setScale} />
       <canvas
         ref={canvasRef}
         width={window.innerWidth}

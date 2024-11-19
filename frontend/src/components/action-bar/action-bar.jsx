@@ -2,10 +2,12 @@ import { Shapes } from "../../types";
 
 import { LuPencil } from "react-icons/lu";
 import { FiCircle, FiMinus, FiMousePointer, FiSquare } from "react-icons/fi";
+import { FaArrowRight } from "react-icons/fa"
 import { IoHandRightOutline, IoText } from "react-icons/io5";
 import "./action-bar-style.css";
+import ArrowLine from "./arrow-line";
 
-function ActionBar({ shape, setShape}) {
+function ActionBar({ shape, setShape }) {
   return (
     <div className="actionBar">
       {Object.values(Shapes).map((t, index) => (
@@ -25,8 +27,9 @@ function ActionBar({ shape, setShape}) {
           {t === "pan" && <IoHandRightOutline />}
           {t === "select" && <FiMousePointer />}
           {t === "rec" && <FiSquare />}
-          {t === "ellipse" && <FiCircle/>}
-          {t === "line" && <FiMinus />}
+          {t === "ellipse" && <FiCircle />}
+          {/* {t === "line" && <FiMinus />} */}
+          {t === "line" && <ArrowLine />}
           {t === "hand" && <LuPencil />}
           {t === "text" && <IoText />}
           <span>{index + 1}</span>

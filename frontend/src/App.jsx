@@ -9,7 +9,7 @@ import fetchSessionStatus from './fetchSessionStatus.js';
 function App() {
   const [user, setUser] = useState(null);
   const location = useLocation();
-  const [sessionOn, setSessionOn] = useState(true);
+  const [sessionOn, setSessionOn] = useState(false);
   const [socket, setSocket] = useState(null)
   const [allshapes, setAllshapes] = useState([])
   useEffect(() => {
@@ -101,6 +101,29 @@ function App() {
     };
   }, [user]);
 
+  useEffect(() => {
+    async function fetchUserSession() {
+      try {
+        const response = await fetch(`http://localhost:3010/api/user/${user}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const session = data.session;
+          setSessionOn(session);
+        } else {
+          console.error("Failed to fetch user session:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching user session:", error);
+      }
+    }
+
+    fetchUserSession(); // Call the async function
+  }, [location, sessionOn, user]); // Dependency array ensures this runs when 'user' changes
+
 
 
   useEffect(() => {
@@ -108,19 +131,29 @@ function App() {
     // const params = new URLSearchParams(location.hash.slice(1));
     // const roomId = params.get('room');
     const userId = location.pathname.includes('user=')
-      ? location.pathname.split('user=')[1]
+      ? location.pathname.split('user=')[1].split('/')[0]
       : null;
+
+    console.log("this is userid", userId)
+
     async function fn() {
+      const sessionToken = location.pathname.includes('session=')
+        ? location.pathname.split('session=')[1]
+        : null;
+      console.log("this is session", sessionToken)
       const sessionStatus = await fetchSessionStatus(userId)
-      if (userId && sessionStatus) {
+      if (userId && sessionStatus.session && sessionStatus.shareToken === sessionToken) {
         console.log("wfdwsfsdfsf", userId)
-        // setSessionOn(true)
+        setSessionOn(true)
         setUser(userId);
       }
-      else await createUserToken({ setUser })
+      else {
+        await createUserToken({ setUser })
+      }
+
     }
     fn()
-  }, [location, sessionOn]);
+  }, [location, sessionOn, user]);
 
   return (
     <div>

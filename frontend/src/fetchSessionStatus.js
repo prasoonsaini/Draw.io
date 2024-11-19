@@ -17,9 +17,7 @@ const fetchSessionStatus = async (userId) => {
             if (response.ok) {
                 const data = await response.json();
                 // setSessionOn(data.session || false);
-                if (data.session)
-                    return true;
-                else return false
+                return data;
             }
         } catch (error) {
             console.error("Error fetching session status:", error);

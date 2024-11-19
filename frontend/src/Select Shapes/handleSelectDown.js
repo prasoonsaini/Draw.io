@@ -42,14 +42,24 @@ function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDrag
   //console.log("index", shapeIndex)
   if (shapeIndex >= 0) {
     // Add a border to the selected shape
-    const temp = allshapes.map((shape, index) => {
-      // Update the clicked shape's `current` property to true, others to false
-      if (index === shapeIndex) {
-        return { ...shape, current: true };
-      }
-      return { ...shape, current: false };
-    });
-    setAllshapes(temp);  // Add this if it's missing
+    // const temp = allshapes.map((shape, index) => {
+    //   // Update the clicked shape's `current` property to true, others to false
+    //   if (index === shapeIndex) {
+    //     return { ...shape, current: true };
+    //   }
+    //   return { ...shape, current: false };
+    // });
+    // setAllshapes(temp);  // Add this if it's missing
+
+    const current_shape = allshapes[shapeIndex];
+    const current_shape_Active = { ...current_shape, current: true }
+    console.log("current shape", current_shape);
+    const remaining = allshapes.filter((_, index) => index !== shapeIndex); // Correctly filter by index
+    const remaining_inactive = remaining.map((shape) => {
+      return { ...shape, current: false }
+    })
+    const temp = [...remaining_inactive, current_shape_Active];
+    setAllshapes(temp);
 
     const resizeIndex = Math.max(getResizingRecIndex({ mouseX, mouseY, allshapes, corner, setCorner }),
       Math.max(getResizingEllipseIndex({ canvasRef, mouseX, mouseY, allshapes, corner, setCorner }),
@@ -62,7 +72,8 @@ function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDrag
     }
     else {
       setIsDragging(true);
-      setDraggingIndex(shapeIndex);
+      setDraggingIndex(allshapes.length - 1);
+      console.log("shapIndex", shapeIndex)
       setStartPos({ x: mouseX, y: mouseY });
     }
   }
