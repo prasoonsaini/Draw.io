@@ -3,11 +3,12 @@ import resizeEllipse from "../helpers(resize)/resizeEllipse";
 import resizeRectangle from "../helpers(resize)/resizeRectangle";
 
 function handleSelectMove(canvasRef, e, startPos, draggingIndex, isDragging,
-    setStartPos, setAllshapes, isResizing, setIsResizing, resizingIndex, corner, shape, panning, offsetX, offsetY, zoomLevel) {
+    setStartPos, allshapes, setAllshapes, isResizing, setIsResizing, resizingIndex, corner, shape, panning, offsetX, offsetY, zoomLevel, box) {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     let mouseX = (e.clientX - rect.left) / zoomLevel + offsetX;
     let mouseY = (e.clientY - rect.top) / zoomLevel + offsetY;
+    const ctx = canvas.getContext('2d');
     //console.log(shape)
     if (isDragging && draggingIndex !== null) {
         const dx = mouseX - startPos.x;
@@ -35,6 +36,32 @@ function handleSelectMove(canvasRef, e, startPos, draggingIndex, isDragging,
                         return { ...sh, x: sh.x + dx, y: sh.y + dy, borderX: sh.borderX + dx, borderY: sh.borderY + dy }
                     }
                     else {
+                        if (sh.ArrowHeadRef) {
+                            const arr = [...allshapes];
+                            arr.forEach((e) => {
+                                sh.ArrowHeadRef.forEach((f) => {
+                                    if (e.shapeId === f.arrowRef) {
+                                        e.endX = e.endX + dx;
+                                        e.endY = e.endY + dy;
+                                    }
+                                })
+                            });
+                            setAllshapes(arr);
+                            // call put to update the axis of arrow too in handleselectmove
+                        }
+                        if (sh.ArrowLegRef) {
+                            const arr = [...allshapes];
+                            arr.forEach((e) => {
+                                sh.ArrowLegRef.forEach((f) => {
+                                    if (e.shapeId === f.arrowRef) {
+                                        e.startX = e.startX + dx;
+                                        e.startY = e.startY + dy;
+                                    }
+                                })
+                            });
+                            setAllshapes(arr);
+                            // call put to update the axis of arrow too in handleselectmove
+                        }
                         return { ...sh, x: sh.x + dx, y: sh.y + dy }
                     }
                 }
@@ -49,7 +76,7 @@ function handleSelectMove(canvasRef, e, startPos, draggingIndex, isDragging,
         setAllshapes(prevShapes =>
             prevShapes.map((sh, index) => {
                 if (index === resizingIndex) {
-                    if (sh.shape === 'rec') {
+                    if (sh.shape === 'rec' || sh.shape === 'image') {
                         const endx = sh.x + sh.width;
                         const endy = sh.y + sh.height;
                         const res = resizeRectangle(sh, endx, endy, mouseX, mouseY, corner)
@@ -68,39 +95,26 @@ function handleSelectMove(canvasRef, e, startPos, draggingIndex, isDragging,
                             return { ...sh, endX: mouseX, endY: mouseY }
                     }
                     else if (sh.shape === 'text') {
-                        const fontSizeScalingFactor = 0.1; // Scaling factor to make font size changes smoother
-                        const minFontSize = 30; // Minimum font size to avoid shrinking too much
-                        const maxFontSize = 100; // Maximum font size to avoid getting too large
-                        if (corner === 4) { // bottom-left corner
-                            // Calculate the change in font size based on mouse movement
-                            let fontSizeChange = (mouseY - (sh.borderY + sh.borderHeight)) * fontSizeScalingFactor;
-                            const newFontSize = Math.max(minFontSize, Math.min(sh.fontSize + fontSizeChange, maxFontSize));
+                        const { offsetY } = e.nativeEvent;
 
-                            // Adjust the width and height of the border based on the new text size
-                            const lineHeight = newFontSize; // Line height can be same as font size
-                            const textLines = sh.text.split('\n'); // Split into multiple lines if necessary
-                            const newBorderHeight = lineHeight * textLines.length; // Adjust border height for all lines
+                        // Calculate new height based on movement
+                        let newHeight = offsetY - box.y;
 
-                            // Resize border width to fit the text dynamically
-                            const ctx = canvas.getContext('2d');
-                            ctx.font = `${newFontSize}px 'Shadows Into Light', cursive`; // Use new font size
-                            const newBorderWidth = Math.max(...textLines.map(line => ctx.measureText(line).width)); // Adjust width
+                        // Add a safeguard for minimum height
+                        newHeight = Math.max(20, newHeight); // Ensure a minimum height of 20px
 
-                            // Adjust borderY to accommodate the new font size
-                            const newBorderY = sh.y - newFontSize; // Move borderY up as font size increases
+                        // Dampening factor to avoid large font size jumps
+                        const lineCount = Math.max(1, sh.text.split("\n").length); // Prevent division by 0
+                        const newFontSize = Math.max(10, (newHeight / lineCount) * 0.5); // Apply dampening factor
 
-                            // Return the updated shape with resized font, border size, and position
-                            return {
-                                ...sh,
-                                borderX: sh.borderX, // Keep x the same (as only height is changing with bottom-left corner)
-                                borderY: newBorderY, // Adjust y to keep text inside the top border
-                                borderWidth: newBorderWidth + 20, // Adding padding around the text
-                                borderHeight: newBorderHeight + 20, // Adding padding around the text
-                                fontSize: newFontSize, // New font size
-                                font: `${newFontSize}px 'Shadows Into Light', cursive` // Update font with new size
-                            };
-                        }
+                        return {
+                            ...sh,
+                            fontSize: newFontSize
+                        };
                     }
+
+
+
                 }
                 else
                     return sh;

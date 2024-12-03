@@ -235,7 +235,7 @@ setInterval(async () => {
                 console.log(user, currentTime, storedTime, timeDifference);
 
                 // Check if time difference is within the defined range
-                if (timeDifference >= 600000) {
+                if (timeDifference >= 6000000) {
                     console.log("Dump for", user);
                     await dumpData(client, user); // Call the function if within the time range
                 }
@@ -244,4 +244,4 @@ setInterval(async () => {
             }
         }
     }
-}, 300000);
+}, 3000000);

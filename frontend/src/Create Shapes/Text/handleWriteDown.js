@@ -3,6 +3,7 @@ function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, set
   // console.log("called")
   const canvas = canvasRef.current;
   const rect = canvas.getBoundingClientRect();
+  const ctx = canvas.getContext("2d");
   // const mouseX = e.clientX - rect.left;
   // const mouseY = e.clientY - rect.top;
   console.log(rect)
@@ -25,10 +26,10 @@ function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, set
   textArea.style.resize = 'none';
   textArea.style.border = 'none';
   textArea.style.outline = 'none';
-  textArea.style.background = 'grey';
-  textArea.style.color = 'black';
+  textArea.style.background = 'transparent';
+  textArea.style.color = 'orange';
   textArea.style.fontSize = `${newfontSize}px`;
-  textArea.style.fontFamily = "'Shadows Into Light', cursive";;
+  textArea.style.fontFamily = "'Caveat', cursive";
   textArea.style.whiteSpace = 'nowrap'; // Keep text on one line
   textArea.style.overflow = 'hidden';
   document.body.appendChild(textArea);
@@ -57,24 +58,31 @@ function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, set
   });
   setShape('select');
   // Handle clicking outside of the textarea to finalize the input
+  const calculateTextDimensions = (text, fontSize) => {
+    ctx.font = `${fontSize}px Arial`;
+    const lines = text.split("\n");
+    const maxWidth = Math.max(...lines.map((line) => ctx.measureText(line).width));
+    const totalHeight = lines.length * fontSize;
+    return { maxWidth, totalHeight, lines };
+  };
   setTimeout(() => {
     const handleOutsideClick = async (event) => {
       if (!textArea.contains(event.target)) {
         const enteredText = textArea.value.trim();
         if (enteredText) {
           // Update current shape to include the text
+          const { maxWidth, totalHeight, lines } = calculateTextDimensions(enteredText, newfontSize);
           const newShape = {
             shape: 'text',
             x: virtualX,
             y: virtualY,
+            width: maxWidth + 20,
+            height: totalHeight + 20,
             text: enteredText,
-            font: `${newfontSize}px 'Shadows Into Light', cursive`,
+            font: `${newfontSize}px "'Caveat', cursive"`,
             fontSize: newfontSize,
-            borderX: virtualX - 10,
-            borderY: virtualY - newfontSize - 10,
-            borderWidth: width + 20,
-            borderHeight: height + 20,
-            fillStyle: 'black',
+            textFont: "'Caveat', cursive",
+            strokeColor: 'orange',
             userId: user
           };
 

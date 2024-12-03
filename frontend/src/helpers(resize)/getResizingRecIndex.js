@@ -1,7 +1,7 @@
 function getResizingRecIndex({ mouseX, mouseY, allshapes, setCorner }) {
   for (let i = 0; i < allshapes.length; i++) {
     const shape = allshapes[i];
-    if (shape.shape === 'rec') {
+    if (shape.shape === 'rec' || shape.shape === 'image') {
       console.log("i i ii  i ii i ")
       if (mouseX >= shape.x - 10 && mouseX <= shape.x && mouseY >= shape.y - 10 && mouseY <= shape.y) {
         setCorner(prevCorner => {

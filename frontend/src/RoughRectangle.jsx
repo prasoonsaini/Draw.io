@@ -18,16 +18,18 @@ import handleMouseMovePanning from './Panning/handleMouseMovePanning';
 import handleMouseUpPanning from './Panning/handleMouseUpPanning';
 import ShareButton from './share-drawing/share-button';
 import ShareWidget from './share-drawing/share-widget';
-import { v4 as uuidv4 } from 'uuid';
 import createUserToken from './CreateToken';
 import fetchSessionStatus from './fetchSessionStatus';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import CurvedRectangle from './CurvedEdgesRect';
 import { ControlPanel } from './components/control-panel/ControlPanel';
+import ImageUpload from './Image/ImageUpload';
+import ImageApp from './Image/ImageFromKonva';
+import handleDoubleClick from './Create Shapes/Text/handleDoubleClick';
 // import CurvedRectangle from './CurvedEdgesRect';
 
 
-const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, setSocket, setAllshapes, allshapes }) => {
+const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, setSocket, setAllshapes, allshapes, undoStack, setUndoStack }) => {
   const canvasRef = useRef(null);
   const [rectangles, setRectangles] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -62,31 +64,14 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
   const prevShapesRef = useRef([]);
   const prevShapesRefCurrent = useRef([]);
   const [clientCount, setClientCount] = useState(0)
+  const [redoStack, setRedoStack] = useState([])
+  // text ----
+  const [box, setBox] = useState({ x: 100, y: 100, width: 200, height: 50 });
   const userId = location.pathname.includes('user=')
     ? location.pathname.split('user=')[1]
     : null;
-  // const [user, setUser] = useState(null)
-  // When the connection is open, notify the //console
-  // useEffect(() => {
-  //   const fetchShapes = async () => {
-  //     try {
-  //       const response = await fetch(`http://localhost:3020/shapes/${user}`); // Fetch shapes from the API
 
-  //       if (!response.ok) {
-  //         throw new Error('Network response was not ok');
-  //       }
-  //       const data = await response.json()
-  //       console.log("response from redis", data.shapes)
-  //       //console.log("main data", data)
-  //       setAllshapes(data.shapes)
-  //     }
-  //     catch (error) {
-  //       //console.error('Error fetching shapes:', error);
-  //     }
-  //   };
-
-  //   user ? fetchShapes() : null; // Call the fetch function
-  // }, [user]); // Empty dependency array means this runs once when the component mounts
+  const [image, setImage] = useState(null);
 
   useEffect(() => {
     console.log("All shapes", allshapes)
@@ -179,6 +164,55 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           setSelected('rec')
         }
       }
+      if (sh && sh.shape === 'image' && sh.imageUrl) {
+        const virtualX = sh.x - offsetX; // Adjust for horizontal panning
+        const virtualY = sh.y - offsetY;
+
+        // Check if the image is already loaded in memory
+        let img = sh.img;
+        if (!img) {
+          img = new Image();
+          img.src = sh.imageUrl; // Use the image URL from DB instead of Base64
+          sh.img = img; // Cache the loaded image
+          // Once the image is loaded, draw it on the canvas
+          img.onload = () => {
+            ctx.drawImage(
+              img,
+              virtualX * zoomLevel,
+              virtualY * zoomLevel,
+              sh.width * zoomLevel,
+              sh.height * zoomLevel
+            );
+          };
+
+          img.onerror = () => {
+            console.error("Failed to load image from:", sh.imageUrl);
+          };
+        } else {
+          // If image is already loaded, just draw it
+          ctx.drawImage(
+            img,
+            virtualX * zoomLevel,
+            virtualY * zoomLevel,
+            sh.width * zoomLevel,
+            sh.height * zoomLevel
+          );
+        }
+
+        if (sh.current) {
+          resizeBorder({
+            canvasRef,
+            x: (virtualX - 5) * zoomLevel,
+            y: (virtualY - 5) * zoomLevel,
+            width: (sh.width + 10) * zoomLevel,
+            height: (sh.height + 10) * zoomLevel,
+          });
+          setSelected("image");
+        }
+      }
+
+
+
       if (sh && sh.shape === 'cir') {
         roughCanvas.circle(sh.x, sh.y, sh.diameter, {
           stroke: `${sh.strokeColor}`,
@@ -316,35 +350,47 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           setSelected('elli')
         }
       }
+
       if (sh && sh.shape === 'text') {
-        const lines = sh.text.split('\n'); // Split the text by newlines
-        const lineHeight = sh.fontSize * zoomLevel; // Adjust line height
-        const adjustedFontSize = sh.fontSize * zoomLevel; // Adjust font size based on zoom level
+        const lines = sh.text.split('\n'); // Split text into lines
+        const adjustedFontSize = sh.fontSize * zoomLevel; // Adjust font size for zoom
+        ctx.font = `${adjustedFontSize}px ${sh.fontFamily || `${sh.textFont}`}`;
+        ctx.fillStyle = sh.strokeColor;
 
-        // Update the font size in the canvas context (ctx)
-        ctx.font = `${adjustedFontSize}px ${sh.fontFamily || 'Arial'}`; // You can set default font family
-        ctx.fillStyle = sh.fillStyle;
-        // console.log(zoomLevel)
-        const virtualX = sh.x - offsetX;
-        const virtualY = sh.y - offsetY;
+        // Recalculate the bounding box dimensions
+        const textWidths = lines.map((line) => ctx.measureText(line).width);
+        const maxWidth = Math.max(...textWidths); // Maximum width of all lines
+        const totalHeight = lines.length * sh.fontSize; // Total height based on font size and lines
 
-        // Loop through each line and render it with the appropriate line height
+        sh.width = maxWidth + 20; // Add padding
+        sh.height = totalHeight + 10; // Add padding
+
+        // Render each line of text
         lines.forEach((line, index) => {
-          ctx.fillText(line, virtualX * zoomLevel, virtualY * zoomLevel + (index * lineHeight));
+          ctx.fillText(
+            line,
+            ((sh.x + 10) - offsetX) * zoomLevel,
+            ((sh.y + sh.fontSize * (index + 1)) - offsetY) * zoomLevel
+          );
         });
 
+        // Draw bounding box
         if (sh.current) {
-          // Draw the border around the text with zoom adjustment
+          ctx.strokeStyle = "blue";
+          // ctx.strokeRect(
+          //   (sh.x - offsetX) * zoomLevel,
+          //   (sh.y - offsetY) * zoomLevel,
+          //   sh.width * zoomLevel,
+          //   sh.height * zoomLevel
+          // );
           borderText({
-            canvasRef,
-            x: (sh.borderX - offsetX) * zoomLevel,
-            y: (sh.borderY - adjustedFontSize - 10 - offsetY) * zoomLevel,
-            width: sh.borderWidth * zoomLevel,
-            height: sh.borderHeight * zoomLevel
-          });
+            canvasRef, x: (sh.x - offsetX) * zoomLevel, y: (sh.y - offsetY) * zoomLevel,
+            width: sh.width * zoomLevel, height: sh.height * zoomLevel
+          })
           setSelected('text');
         }
       }
+
 
     }) : null
 
@@ -466,8 +512,8 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
         }
       }
     }
-    console.log(offsetX, offsetY, zoomLevel)
-  }, [allshapes, currentShape, offsetX, offsetY, zoomLevel]);
+    // console.log(offsetX, offsetY, zoomLevel)
+  }, [allshapes, currentShape, offsetX, offsetY, zoomLevel, undoStack]);
   useEffect(() => {
     const preventHistoryNavigation = (e) => {
       if (
@@ -517,12 +563,34 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
     setOffsetY((prevOffsetY) => (prevOffsetY + e.deltaY));
   };
 
-
   function undo() {
-
+    if (undoStack.length < 1) {
+      console.log("nothing to undo")
+      return;
+    }
+    console.log("undo called")
+    console.log("undo stack", undoStack)
+    const secondItem = undoStack[undoStack.length - 2];
+    const topItem = undoStack[undoStack.length - 1];
+    const temp = [...undoStack]
+    temp.pop()
+    setUndoStack(temp)
+    setAllshapes(secondItem)
+    setRedoStack((prev) => [...prev, topItem])
   }
   function redo() {
-
+    if (redoStack.length < 1) {
+      console.log("nothing to redo")
+      return;
+    }
+    console.log("redo called")
+    console.log("redo stack", redoStack)
+    const topItem = redoStack[redoStack.length - 1];
+    const temp = [...redoStack]
+    temp.pop()
+    setRedoStack(temp)
+    setAllshapes(topItem)
+    setUndoStack((prev) => [...prev, topItem])
   }
   function onZoom(level) {
     const canvas = canvasRef.current;
@@ -530,7 +598,6 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
     setZoomLevel(prevZoom + level)
     setScale(prevZoom + level)
   }
-
 
   return (
     <div>
@@ -540,28 +607,72 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
       {share ? <ShareWidget user={user} sessionActive={sessionActive} setSessionActive={setSessionActive} setUser={setUser} socket={socket} setSocket={setSocket} setShareWidgetRef={setShareWidgetRef} /> : <></>}
       {selected ? <ShapeCustomizer color={color} setColor={setColor} allshapes={allshapes} setAllshapes={setAllshapes} selected={selected} selectedShape={selectedShape} user={user} /> : <></>}
       <ControlPanel undo={undo} redo={redo} onZoom={onZoom} scale={scale} setScale={setScale} />
+      {shape === 'image' && <ImageUpload canvasRef={canvasRef} setAllshapes={setAllshapes} setCurrentShape={setCurrentShape} currentShape={currentShape} user={user} />}
       <canvas
         ref={canvasRef}
         width={window.innerWidth}
         height={window.innerHeight}
         // style={{ border: '1px solid black' }}
-        onMouseDown={(e) => shape === 'select' ? handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDragging, setDraggingIndex, setStartPos,
-          allshapes, setAllshapes, isResizing, setIsResizing, setResizingIndex, resizingIndex, corner, setCorner, shape, setPanning, offsetX, offsetY, zoomLevel)
-          : shape === 'text' ? handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user)
-            : shape === "pan" ? handleMouseDownPanning(e, setIsPanDragging, setStartX, setStartY, offsetX, offsetY)
-              : handleMouseDown(canvasRef, e, setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel)}
+        onMouseDown={(e) => {
+          e.preventDefault();  // Prevent default browser behavior
+          // e.stopPropagation();  // Stop event propagation
+          shape === 'select' ? handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDragging, setDraggingIndex, setStartPos,
+            allshapes, setAllshapes, isResizing, setIsResizing, setResizingIndex, resizingIndex, corner, setCorner, shape, setPanning, offsetX, offsetY, zoomLevel)
+            : shape === 'text' ? handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user)
+              : shape === "pan" ? handleMouseDownPanning(e, setIsPanDragging, setStartX, setStartY, offsetX, offsetY)
+                : handleMouseDown(canvasRef, e, allshapes, setAllshapes, setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel);
+        }}
 
-        onMouseMove={(e) => shape === 'select' ? handleSelectMove(canvasRef, e, startPos, draggingIndex, isDragging, setStartPos, setAllshapes,
-          isResizing, setIsResizing, resizingIndex, corner, shape, panning, offsetX, offsetY, zoomLevel)
-          : shape === "pan" ? handleMouseMovePanning(e, isPanDragging, setOffsetX, setOffsetY, startX, startY)
-            : handleMouseMove(canvasRef, e, isDrawing, currentShape, setCurrentShape, shape, offsetX, offsetY, zoomLevel)}
+        onMouseMove={(e) => {
+          e.preventDefault();  // Prevent default browser behavior
+          e.stopPropagation();  // Stop event propagation
+          shape === 'select' ? handleSelectMove(canvasRef, e, startPos, draggingIndex, isDragging, setStartPos, allshapes, setAllshapes,
+            isResizing, setIsResizing, resizingIndex, corner, shape, panning, offsetX, offsetY, zoomLevel, box)
+            : shape === "pan" ? handleMouseMovePanning(e, isPanDragging, setOffsetX, setOffsetY, startX, startY)
+              : handleMouseMove(canvasRef, e, isDrawing, currentShape, setCurrentShape, shape, offsetX, offsetY, zoomLevel);
+        }}
 
-        onMouseUp={() => shape === 'select' ? handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingIndex,
-          setIsResizing, setResizingIndex, isResizing, panning, setPanning, allshapes, user)
-          : shape === "pan" ? handleMouseUpPanning(setIsPanDragging)
-            : handleMouseUp(canvasRef, isDrawing, currentShape, allshapes, setCurrentShape, setAllshapes, setIsDrawing, setShape, user)}
+        onMouseUp={(e) => {
+          e.preventDefault();  // Prevent default browser behavior
+          e.stopPropagation();  // Stop event propagation
+          shape === 'select' ? handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingIndex,
+            setIsResizing, setResizingIndex, isResizing, panning, setPanning, allshapes, setAllshapes, user)
+            : shape === "pan" ? handleMouseUpPanning(setIsPanDragging)
+              : handleMouseUp(canvasRef, isDrawing, currentShape, allshapes, setCurrentShape, setAllshapes, setIsDrawing, setShape, user, undoStack, setUndoStack);
+        }}
 
         onWheel={handleWheel}
+        onDoubleClick={(e) => handleDoubleClick(canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user)}
+      // Touch events for mobile devices
+      // onTouchStart={(e) => {
+      //   // Prevent default behavior to avoid conflicts with scrolling
+      //   e.preventDefault();
+      //   e.stopPropagation();
+      //   shape === 'select' ? handleSelectDown(canvasRef, e.touches[0], currentShape, setCurrentShape, setIsDragging, setDraggingIndex, setStartPos,
+      //     allshapes, setAllshapes, isResizing, setIsResizing, setResizingIndex, resizingIndex, corner, setCorner, shape, setPanning, offsetX, offsetY, zoomLevel)
+      //     : shape === 'text' ? handleWriteDown(canvasRef, e.touches[0], currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user)
+      //       : shape === "pan" ? handleMouseDownPanning(e.touches[0], setIsPanDragging, setStartX, setStartY, offsetX, offsetY)
+      //         : handleMouseDown(canvasRef, e.touches[0], setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel);
+      // }}
+
+      // onTouchMove={(e) => {
+      //   // Prevent default behavior to avoid conflicts with scrolling
+      //   e.preventDefault();
+      //   e.stopPropagation();
+      //   shape === 'select' ? handleSelectMove(canvasRef, e.touches[0], startPos, draggingIndex, isDragging, setStartPos, setAllshapes,
+      //     isResizing, setIsResizing, resizingIndex, corner, shape, panning, offsetX, offsetY, zoomLevel)
+      //     : shape === "pan" ? handleMouseMovePanning(e.touches[0], isPanDragging, setOffsetX, setOffsetY, startX, startY)
+      //       : handleMouseMove(canvasRef, e.touches[0], isDrawing, currentShape, setCurrentShape, shape, offsetX, offsetY, zoomLevel);
+      // }}
+
+      // onTouchEnd={() => {
+      //   e.preventDefault();
+      //   e.stopPropagation();
+      //   shape === 'select' ? handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingIndex,
+      //     setIsResizing, setResizingIndex, isResizing, panning, setPanning, allshapes, user)
+      //     : shape === "pan" ? handleMouseUpPanning(setIsPanDragging)
+      //       : handleMouseUp(canvasRef, isDrawing, currentShape, allshapes, setCurrentShape, setAllshapes, setIsDrawing, setShape, user);
+      // }}
       />
     </div>
   );

@@ -6,6 +6,9 @@ const PointSchema = new Schema({
     x: Number,
     y: Number,
 });
+const ArrowRefSchema = new Schema({
+    arrowRef: Number
+})
 
 // Main Shapes schema
 const ShapesSchema = new Schema({
@@ -37,6 +40,10 @@ const ShapesSchema = new Schema({
     curved: Boolean,
     shapeId: { type: Number, required: true, unique: true },
     userId: { type: String, required: true },
+    imageUrl: { type: String },
+    ArrowHeadRef: [ArrowRefSchema],
+    ArrowLegRef: [ArrowRefSchema],
+    textFont: { type: String }
 }, { timestamps: true });
 
 const UserSchema = new Schema({

@@ -34,7 +34,7 @@ function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDrag
         getClickedArrowIndex(mouseX, mouseY, allshapes),
         Math.max(getClickedHandIndex(mouseX, mouseY, allshapes),
           Math.max(getClickedEllipseIndex(mouseX, mouseY, allshapes),
-            getClickedTextIndex(mouseX, mouseY, allshapes))
+            getClickedTextIndex(mouseX, mouseY, allshapes, ctx))
         )
       )
     )
@@ -64,7 +64,7 @@ function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDrag
     const resizeIndex = Math.max(getResizingRecIndex({ mouseX, mouseY, allshapes, corner, setCorner }),
       Math.max(getResizingEllipseIndex({ canvasRef, mouseX, mouseY, allshapes, corner, setCorner }),
         Math.max(getResizingArrowIndex({ canvasRef, mouseX, mouseY, allshapes, corner, setCorner }),
-          getResizingTextIndex({ canvasRef, mouseX, mouseY, allshapes, corner, setCorner, offsetX, offsetY, zoomLevel }))))
+          getResizingTextIndex({ canvasRef, mouseX, mouseY, allshapes, corner, setCorner, offsetX, offsetY, zoomLevel, ctx }))))
     //console.log("resize index", resizeIndex)
     if (resizeIndex != -1) {
       setIsResizing(true)

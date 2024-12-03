@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import './index.css';
 import createUserToken from './CreateToken.js';
 import fetchSessionStatus from './fetchSessionStatus.js';
+import { Stack } from '@mui/material';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -12,6 +13,7 @@ function App() {
   const [sessionOn, setSessionOn] = useState(false);
   const [socket, setSocket] = useState(null)
   const [allshapes, setAllshapes] = useState([])
+  const [undoStack, setUndoStack] = useState([]);
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:8080');
     const fetchShapes = async () => {
@@ -23,8 +25,13 @@ function App() {
         }
         const data = await response.json()
         console.log("response from redis", data.shapes)
-        //console.log("main data", data)
+        // console.log("main data", data)
         setAllshapes(data.shapes)
+        if (!data.shapes || data.shapes.length === 0) {
+          setUndoStack(...undoStack, [])
+        }
+        else
+          setUndoStack([...undoStack, data.shapes])
       }
       catch (error) {
         //console.error('Error fetching shapes:', error);
@@ -158,7 +165,8 @@ function App() {
   return (
     <div>
       <RoughRectangle user={user} setUser={setUser}
-        sessionActive={sessionOn} setSessionActive={setSessionOn} socket={socket} setSocket={setSocket} setAllshapes={setAllshapes} allshapes={allshapes} />
+        sessionActive={sessionOn} setSessionActive={setSessionOn} socket={socket} setSocket={setSocket}
+        setAllshapes={setAllshapes} allshapes={allshapes} undoStack={undoStack} setUndoStack={setUndoStack} />
     </div>
   );
 }

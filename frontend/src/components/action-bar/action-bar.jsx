@@ -2,7 +2,9 @@ import { Shapes } from "../../types";
 
 import { LuPencil } from "react-icons/lu";
 import { FiCircle, FiMinus, FiMousePointer, FiSquare } from "react-icons/fi";
-import { FaArrowRight } from "react-icons/fa"
+import { FaImage } from "react-icons/fa"
+import { MdImage } from 'react-icons/md';
+import { IoMdImage } from 'react-icons/io';
 import { IoHandRightOutline, IoText } from "react-icons/io5";
 import "./action-bar-style.css";
 import ArrowLine from "./arrow-line";
@@ -32,6 +34,7 @@ function ActionBar({ shape, setShape }) {
           {t === "line" && <ArrowLine />}
           {t === "hand" && <LuPencil />}
           {t === "text" && <IoText />}
+          {t === "image" && <MdImage />}
           <span>{index + 1}</span>
         </div>
       ))}

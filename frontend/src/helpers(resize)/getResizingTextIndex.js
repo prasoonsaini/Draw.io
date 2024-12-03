@@ -1,13 +1,16 @@
-function getResizingTextIndex({ mouseX, mouseY, allshapes, setCorner, offsetX, offsetY, zoomLevel }) {
+function getResizingTextIndex({ mouseX, mouseY, allshapes, setCorner, offsetX, offsetY, zoomLevel, ctx }) {
   for (let i = 0; i < allshapes.length; i++) {
     const sh = allshapes[i];
+    if (sh.shape != 'text')
+      continue;
     if (sh.shape === 'text') {
       const shape = {
-        x: sh.borderX,
-        y: sh.borderY,
-        width: sh.borderWidth,
-        height: sh.borderHeight
+        x: sh.x,
+        y: sh.y,
+        width: sh.width,
+        height: sh.height
       }
+
       // console.log("resize",mouseX,mouseY)
       console.log("insdie click", shape)
       console.log(mouseX, mouseY)

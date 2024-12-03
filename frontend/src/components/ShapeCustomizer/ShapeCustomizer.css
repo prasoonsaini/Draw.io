@@ -71,3 +71,15 @@
   /* Center any inner content horizontally */
   align-items: center;
 }
+
+@media (max-width: 900px) {
+  .customizeBar {
+    width: 30%;
+    height: 80%;
+    top: 200px;
+    left: 0;
+    padding: 10px;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+}

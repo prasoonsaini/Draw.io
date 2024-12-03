@@ -1,4 +1,6 @@
-const handleMouseUp = async (canvasRef, isDrawing, currentShape, allshapes, setCurrentShape, setAllshapes, setIsDrawing, setShape, user) => {
+import ArrowNearShape from "../helpers(select)/ArrowNearShape";
+
+const handleMouseUp = async (canvasRef, isDrawing, currentShape, allshapes, setCurrentShape, setAllshapes, setIsDrawing, setShape, user, undoStack, setUndoStack) => {
     console.log("user", user)
     if (isDrawing && currentShape) {
         // Finalize the shape when the mouse is released
@@ -22,12 +24,21 @@ const handleMouseUp = async (canvasRef, isDrawing, currentShape, allshapes, setC
         }));
 
         // Mark the current shape as finalized
-        temp = { ...temp, current: false, shapeId: Math.floor(Math.random() * 100000), userId: user };
+        if (temp.shape !== 'line')
+            temp = { ...temp, current: false, userId: user, shapeId: Math.floor(Math.random() * 100000) };
+        else
+            temp = { ...temp, current: false, userId: user };
 
         // Update states
         setShape('select');
         setCurrentShape(temp);
         setAllshapes([temp, ...updatedShapes]);
+        console.log("setUndoStack:", typeof setUndoStack);
+        if (typeof setUndoStack !== 'function') {
+            throw new Error("setUndoStack is not a function. Check how it's passed!");
+        }
+        // setUndoStack([...undoStack, [temp, ...updatedShapes]]);
+        setUndoStack((prevUndoStack) => [...prevUndoStack, [temp, ...updatedShapes]]);
 
         // Validate the shape before sending it
         if ((temp.shape === 'rec' && (temp.width === 0 || temp.height === 0)) ||
@@ -39,6 +50,29 @@ const handleMouseUp = async (canvasRef, isDrawing, currentShape, allshapes, setC
             return;
         }
         console.log("temwrwrw", temp)
+        if (temp.shape === 'line') {
+            const head_shapeId = ArrowNearShape(temp.endX, temp.endY, allshapes);
+            if (head_shapeId > 0) {
+                console.log("arrow head found", head_shapeId);
+
+                const updatedShapes = allshapes.map((shape) => {
+                    if (shape.shapeId === head_shapeId) {
+                        // Clone the shape and update its ArrowHeadRef
+                        return {
+                            ...shape,
+                            ArrowHeadRef: [...(shape.ArrowHeadRef || []), { arrowRef: temp.shapeId }] // Ensure ArrowHeadRef is an array
+                        };
+                    }
+                    return shape; // Return the shape as is if not matching
+                });
+
+                setAllshapes([...updatedShapes, temp]);
+
+                console.log("Updated allshapes", [...updatedShapes, temp]);
+                // Call PUT or additional logic if needed
+            }
+        }
+
         // Send the POST request to create a new shape
         try {
             const response = await fetch('http://localhost:3020/shapes', {

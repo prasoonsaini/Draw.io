@@ -19,6 +19,9 @@ import Copy from './SVG/copy';
 import Delete from './SVG/delete';
 import Link from './SVG/Link';
 import { useState } from 'react';
+import HandWrite from './SVG/handWrite';
+import CodeWrite from './SVG/codeWrite';
+import NormalWrite from './SVG/normatWrite';
 function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, user }) {
     const [selectedButton, setSelectedButton] = useState(null);
     async function changeColor(newColor) {
@@ -246,6 +249,43 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
         console.log("UPdared shaep", updatedShapes)
         setAllshapes(updatedShapes)
     }
+    async function ChangeFont(font) {
+        const updatedShapes = await Promise.all(
+            allshapes.map(async (shape) => {
+                if (shape.current) {
+                    // Update the color of the selected shape
+                    const updatedShape = { ...shape, textFont: font };
+                    try {
+                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(updatedShape), // Send the shape data
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+
+                    } catch (error) {
+                        console.error('Error updating shape:', error);
+                    }
+                    return updatedShape;
+                }
+                return shape;
+            })
+        );
+        setAllshapes(updatedShapes)
+    }
+    const colors = [
+        '#1e1e1e', '#e03131', '#2f9e44', '#1971c2',
+        '#f08c00', '#726d6c', '#f57b63', '#5bde4b',
+        '#92bbf0', '#ecbe9e'
+    ];
+    const backgroundColors = [
+        'grey', '#ffc9c9', '#b2f2bb', '#ffec99', '#92bbf0',
+    ];
 
     return (
         <div className="customizeBar">
@@ -255,41 +295,75 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     <p>stroke</p>
                 </div>
                 <div className='color-parent'>
-                    <button className='color' style={{ backgroundColor: '#1e1e1e', }} onClick={() => { changeColor('#1e1e1e') }}></button>
-                    <button className='color' style={{ backgroundColor: '#e03131', }} onClick={() => { changeColor('#e03131') }}></button>
-                    <button className='color' style={{ backgroundColor: '#2f9e44', }} onClick={() => { changeColor('#2f9e44') }}></button>
-                    <button className='color' style={{ backgroundColor: '#1971c2', }} onClick={() => { changeColor('#1971c2') }}></button>
-                    <button className='color' style={{ backgroundColor: '#f08c00', }} onClick={() => { changeColor('#f08c00') }}></button>
-                    <button className='color' style={{ backgroundColor: '#726d6c', }} onClick={() => { changeColor('#726d6c') }}></button>
-                    <button className='color' style={{ backgroundColor: '#f57b63', }} onClick={() => { changeColor('#f57b63') }}></button>
-                    <button className='color' style={{ backgroundColor: '#5bde4b', }} onClick={() => { changeColor('#5bde4b') }}></button>
-                    <button className='color' style={{ backgroundColor: '#92bbf0', }} onClick={() => { changeColor('#92bbf0') }}></button>
-                    <button className='color' style={{ backgroundColor: '#ecbe9e', }} onClick={() => { changeColor('#ecbe9e') }}></button>
+                    {colors.map(color => (
+                        <button
+                            key={color}
+                            className="color"
+                            style={{
+                                backgroundColor: color,
+                                padding: '5px', // Adds space between the border and color
+                                border: selectedButton === color ? '2px solid black' : 'none',
+                                boxShadow: selectedButton === color ? '0 0 0 1px white inset' : 'none', // Creates the illusion of a gap
+                                outline: 'none', // Removes focus outline
+                                width: '30px', // Adjusted to maintain consistent size
+                                height: '30px',
+                            }}
+                            onClick={() => handleButtonClick(color, () => changeColor(color))}
+                        ></button>
+                    ))}
                 </div>
             </div>
-            {selected != 'line' ? <div className='combo'>
+            {selected === 'text' ? <div className='combo'>
+                <div className='container'>
+                    <p>font</p>
+                </div>
+                <div className='color-parent'>
+                    <button className='color' style={{ background: selectedButton === 'Handwritten' ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('Handwritten', () => ChangeFont("'Caveat', cursive"))}><HandWrite /></button>
+                    <button className='color' style={{ background: selectedButton === 'Normal' ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('Normal', () => ChangeFont("'Roboto', sans-serif"))}><NormalWrite /></button>
+                    <button className='color' style={{ background: selectedButton === 'Code' ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('Code', () => ChangeFont("'Fira Code', monospace"))}><CodeWrite /></button>
+                </div>
+            </div> : <></>}
+            {selected !== 'line' && selected !== 'text' ? <div className='combo'>
                 <div className='container'>
                     <p>background</p>
                 </div>
                 <div className='color-parent'>
-                    <button className='color' style={{ backgroundColor: 'grey', }} onClick={() => { changeBackgroundColor('grey') }}></button>
-                    <button className='color' style={{ backgroundColor: '#ffc9c9', }} onClick={() => { changeBackgroundColor('#ffc9c9') }}></button>
-                    <button className='color' style={{ backgroundColor: '#b2f2bb', }} onClick={() => { changeBackgroundColor('#b2f2bb') }}></button>
-                    <button className='color' style={{ backgroundColor: '#b2f2bb', }} onClick={() => { changeBackgroundColor('#b2f2bb') }}></button>
-                    <button className='color' style={{ backgroundColor: '#ffec99', }} onClick={() => { changeBackgroundColor('#ffec99') }}></button>
+                    {backgroundColors.map((color) => (
+                        <button
+                            key={color}
+                            className="color"
+                            style={{
+                                backgroundColor: color,
+                                padding: '5px', // Adds space between the border and color
+                                border: selectedButton === color ? '2px solid black' : 'none',
+                                boxShadow: selectedButton === color ? '0 0 0 1px white inset' : 'none', // Creates the illusion of a gap
+                                outline: 'none', // Removes focus outline
+                                width: '30px', // Adjusted to maintain consistent size
+                                height: '30px',
+                            }}
+                            onClick={() => handleButtonClick(color, () => changeBackgroundColor(color))}
+                        ></button>
+                    ))}
+
                 </div>
             </div> : <></>}
-            <div className='combo'>
+            {selected !== 'text' ? <div className='combo'>
                 <div className='container'>
                     <p>fill</p>
                 </div>
                 <div className='color-parent'>
-                    <button className='color' onClick={() => { ChangeFillType('hachure') }}><Hachure /></button>
-                    <button className='color' onClick={() => { ChangeFillType('cross-hatch') }}><CrossHatch /></button>
-                    <button className='color' onClick={() => { ChangeFillType('solid') }}><Solid /></button>
+                    <button className='color' style={{ background: selectedButton === 'hachure' ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('hachure', () => ChangeFillType('hachure'))}><Hachure /></button>
+                    <button className='color' style={{ background: selectedButton === 'cross-hatch' ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('cross-hatch', () => ChangeFillType('cross-hatch'))}><CrossHatch /></button>
+                    <button className='color' style={{ background: selectedButton === 'solid' ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('solid', () => ChangeFillType('solid'))}><Solid /></button>
                 </div>
-            </div>
-            <div className='combo'>
+            </div> : <></>}
+            {selected !== 'text' ? <div className='combo'>
                 <div className='container'>
                     <p>stroke width</p>
                 </div>
@@ -301,8 +375,8 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     <button className="color" style={{ background: selectedButton === 'ThickestLine' ? '#7ee4fa' : '' }}
                         onClick={() => handleButtonClick('ThickestLine', () => strokeWidthChange(6))}><ThickestLine /></button>
                 </div>
-            </div>
-            <div className='combo'>
+            </div> : <></>}
+            {selected !== 'text' ? <div className='combo'>
                 <div className='container'>
                     <p>stroke style</p>
                 </div>
@@ -314,8 +388,8 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     <button className="color" style={{ background: selectedButton === 'DottedLine' ? '#7ee4fa' : '' }}
                         onClick={() => handleButtonClick('DottedLine', () => changeStrokeStyle([1, 5]))}><DottedLine /></button>
                 </div>
-            </div>
-            <div className='combo'>
+            </div> : <></>}
+            {selected !== 'text' ? <div className='combo'>
                 <div className='container'>
                     <p>slopiness</p>
                 </div>
@@ -327,14 +401,18 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     <button className="color" style={{ background: selectedButton === 'Slopiness3' ? '#7ee4fa' : '' }}
                         onClick={() => handleButtonClick('Slopiness3', () => changeSlopiness(2))}><Slopiness3 /></button>
                 </div>
-            </div>
+            </div> : <></>}
             {selected === 'rec' ? <div className='combo'>
                 <div className='container'>
                     <p>edges</p>
                 </div>
                 <div className='color-parent'>
-                    <button onClick={() => handleEdge(false)}><Edge /></button>
-                    <button onClick={() => handleEdge(true)}><CurevedEdge /></button>
+                    {/* <button onClick={() => handleEdge(false)}><Edge /></button>
+                    <button onClick={() => handleEdge(true)}><CurevedEdge /></button> */}
+                    <button className='color' style={{ background: selectedButton === 'edge' ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('edge', () => handleEdge(false))}><Edge /></button>
+                    <button className='color' style={{ background: selectedButton === 'curve' ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('curve', () => handleEdge(true))}><CurevedEdge /></button>
                 </div>
             </div> : <></>}
             <div className='combo'>

@@ -10,7 +10,7 @@ function CurvedRectangle(canvasRef, x, y, width, height, strokeColor,
         x += width;
         width *= -1
     }
-    console.log("curved rectangle", x, y, width, height)
+    // console.log("curved rectangle", x, y, width, height)
     const curveRadius = Math.min(width, height) * 0.2;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');

@@ -1,0 +1,14 @@
+.upload-widget {
+    position: absolute;
+    /* Positions it relative to the page */
+    top: 200px;
+    /* Space from the top */
+    right: 10px;
+    /* Space from the right */
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
