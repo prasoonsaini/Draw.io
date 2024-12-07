@@ -227,6 +227,54 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
         // Update the state with the filtered shapes
         setAllshapes(temp);
     }
+    async function handleCopy() {
+        // First, iterate over all shapes and delete those where `shape.current` is true
+        const RAND_NUM = Math.floor(10000 * Math.random());
+        const temp = allshapes.filter((e) => {
+            if (e.current) {
+                return true;
+            }
+        });
+        let sh = temp[0];
+        sh = {
+            ...sh, x: sh.x + 50, y: sh.y + 50, startX: sh.startX + 50, endX: sh.endX + 50, startY: sh.startY + 50,
+            endY: sh.endY + 50, shapeId: RAND_NUM
+        }
+        await Promise.all(allshapes.map(async (shape) => {
+            if (shape.current) {
+                const newShape = { ...shape };
+                shape.current = false
+                newShape.x += 50;
+                newShape.y += 50;
+                newShape.startX += 50;
+                newShape.endX += 50;
+                newShape.startY += 50;
+                newShape.endY += 50;
+                newShape.shapeId = RAND_NUM
+                console.log("shape", newShape)
+                await fetch(`http://localhost:3020/shapes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newShape)
+                });
+                return;
+            }
+        }));
+
+        // Now filter out the shapes where `shape.current` is true
+        // const temp = allshapes.filter((e) => {
+        //     if (e.current) {
+        //         return true;
+        //     }
+        // });
+        // let sh = temp[0];
+        // sh = { ...sh, x: sh.x + 50, y: sh.y + 50, shapeId: RAND_NUM }
+        // console.log("shapdwe dd ", sh)
+        // Update the state with the filtered shapes
+        setAllshapes([...allshapes, sh]);
+    }
     async function handleEdge(curved) {
         setCustom({ ...custom, curved: curved })
         const updatedShapes = await Promise.all(
@@ -456,7 +504,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     <p>Actions</p>
                 </div>
                 <div className='color-parent'>
-                    <Copy />
+                    <button onClick={() => handleCopy()} ><Copy /></button>
                     <button onClick={() => handleDelete()} ><Delete /></button>
                     <Link />
                 </div>
