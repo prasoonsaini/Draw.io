@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import rough from 'roughjs/bin/rough';
 import ArrowNearShape from '../helpers(select)/ArrowNearShape';
 
-const handleMouseDown = (canvasRef, e, allshapes, setAllshapes, setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel) => {
+const handleMouseDown = (canvasRef, e, allshapes, setAllshapes, setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel, custom) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     let mouseX = (e.clientX - rect.left) / zoomLevel + offsetX;
@@ -10,15 +10,25 @@ const handleMouseDown = (canvasRef, e, allshapes, setAllshapes, setIsDrawing, se
 
     // Start drawing a new rectangle
     setIsDrawing(true)
+    // let strokeStyle = [0,0];
+    // if(custom.strokeStyle === 'PlaneLine'){
+
+    // }
     if (shape === 'rec') {
-        setCurrentShape({ shape: 'rec', x: mouseX, y: mouseY, width: 0, height: 0, current: true, strokeColor: 'black', backgroundColor: 'transparent', fillType: 'solid', strokeWidth: 1, slopiness: 0.5, strokeStyle: [0, 0], curved: true });
+        setCurrentShape({
+            shape: 'rec', x: mouseX, y: mouseY, width: 0, height: 0, current: true, strokeColor: custom.stroke, backgroundColor: custom.background,
+            fillType: custom.fill, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle, curved: custom.curved
+        });
     }
     else if (shape === 'cir') {
-        setCurrentShape({ shape: 'cir', x: mouseX, y: mouseY, diameter: 0, current: true, strokeColor: 'black', backgroundColor: 'white', fillType: 'solid', strokeWidth: 2, slopiness: 0, strokeStyle: [0, 0] });
+        setCurrentShape({
+            shape: 'cir', x: mouseX, y: mouseY, diameter: 0, current: true, strokeColor: custom.stroke,
+            backgroundColor: custom.background, fillType: custom.fill, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle
+        });
     }
     else if (shape === "line") {
         const arrowId = Math.floor(Math.random() * 100000);
-        setCurrentShape({ shape: 'line', startX: mouseX, startY: mouseY, endX: mouseX, endY: mouseY, current: true, strokeColor: 'black', strokeWidth: 2, slopiness: 0, strokeStyle: [0, 0], ArrowHeadRef: [], ArrowLegRef: [], shapeId: arrowId });
+        setCurrentShape({ shape: 'line', startX: mouseX, startY: mouseY, endX: mouseX, endY: mouseY, current: true, strokeColor: custom.stroke, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle, ArrowHeadRef: [], ArrowLegRef: [], shapeId: arrowId });
         const leg_shapeId = ArrowNearShape(mouseX, mouseY, allshapes);
         if (leg_shapeId > 0) {
             console.log("arrow leg found", leg_shapeId);
@@ -42,10 +52,13 @@ const handleMouseDown = (canvasRef, e, allshapes, setAllshapes, setIsDrawing, se
         }
     }
     else if (shape === "hand") {
-        setCurrentShape({ shape: 'hand', points: [{ x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }], current: true, strokeColor: 'black', strokeWidth: 2, slopiness: 0, strokeStyle: [0, 0] });
+        setCurrentShape({ shape: 'hand', points: [{ x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }], current: true, strokeColor: custom.stroke, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle });
     }
     else if (shape === "ellipse") {
-        setCurrentShape({ shape: 'ellipse', x: mouseX, y: mouseY, width: 0, height: 0, current: true, strokeColor: 'black', backgroundColor: 'white', fillType: 'solid', strokeWidth: 2, slopiness: 0, strokeStyle: [0, 0] });
+        setCurrentShape({
+            shape: 'ellipse', x: mouseX, y: mouseY, width: 0, height: 0, current: true, strokeColor: custom.stroke, backgroundColor: custom.background, fillType: custom.fill,
+            strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle
+        });
     }
 };
 

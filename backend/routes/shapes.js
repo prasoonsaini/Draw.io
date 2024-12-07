@@ -20,6 +20,8 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
+
+// 2. Get shapes from a specific user
 router.get('/:userId', async (req, res) => {
     try {
         const allShapes = await ShapesModel.find()
@@ -34,7 +36,7 @@ router.get('/:userId', async (req, res) => {
     }
 })
 
-// 2. POST - Create a new shape
+// 3. POST - Create a new shape
 router.post('/', async (req, res) => {
     const newShape = req.body;
     try {
@@ -46,7 +48,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// 3. PUT - Update a particular shape by ID
+// 4. PUT - Update a particular shape by ID
 router.put('/:shapeId', async (req, res) => {
     const { shapeId } = req.params;
     try {
@@ -65,7 +67,7 @@ router.put('/:shapeId', async (req, res) => {
         res.status(400).json({ message: 'Error updating shape', error });
     }
 });
-
+// 5. Delete a shape
 router.delete('/:shapeId', async (req, res) => {
     const { shapeId } = req.params;
 

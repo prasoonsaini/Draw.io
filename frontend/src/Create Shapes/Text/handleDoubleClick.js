@@ -3,7 +3,7 @@ import getClickedTextIndex from "../../helpers(select)/getClickedTextIndex";
 import updateText from "./updateText";
 
 const handleDoubleClick = (canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes,
-    font, setFont, offsetX, offsetY, zoomLevel, user) => {
+    font, setFont, offsetX, offsetY, zoomLevel, user, custom, setSelected) => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -17,6 +17,8 @@ const handleDoubleClick = (canvasRef, e, currentShape, setCurrentShape, shape, s
     if (clickedIdx == -1)
         return;
 
+    setSelected("text")
+    console.log(":set is selected")
     const updateShape = allshapes[clickedIdx];
     console.log("thiis the text shape", updateShape)
     const restShapes = allshapes.filter((sh) => {
@@ -26,7 +28,7 @@ const handleDoubleClick = (canvasRef, e, currentShape, setCurrentShape, shape, s
     })
     setAllshapes([...restShapes])
     updateText(canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes,
-        font, setFont, offsetX, offsetY, zoomLevel, user, updateShape)
+        font, setFont, offsetX, offsetY, zoomLevel, user, updateShape, custom)
 
 
 };

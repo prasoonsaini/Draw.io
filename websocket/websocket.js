@@ -46,6 +46,9 @@ wss.on('connection', function connect(socket) {
     socket.on('message', function message(data, isBinary) {
         const final_data = data.toString();
         const { user, session } = JSON.parse(final_data);
+        // if (!session) {
+        //     socket.close();
+        // }
         console.log("Received message", final_data)
         // Create a new set for the user if they don't have one
         if (!rooms.has(user)) {
@@ -54,7 +57,6 @@ wss.on('connection', function connect(socket) {
 
         // Add the socket to the user's room
         rooms.get(user).add(socket);
-
         // Use the throttled broadcast function
         throttledBroadcast(user, final_data, isBinary, socket);
     });
@@ -62,6 +64,7 @@ wss.on('connection', function connect(socket) {
     // When the connection closes, remove the socket from the user's room
     socket.on('close', () => {
         // Iterate over each room to find where the socket belongs
+        console.log("sesion is closed")
         for (const [user, clients] of rooms.entries()) {
             if (clients.has(socket)) {
                 clients.delete(socket); // Remove the socket from the room

@@ -96,8 +96,9 @@ function App() {
       console.log('Received message', msg);
 
       if (!msg.session) {
-        console.log('Received message is not session', msg);
+        console.log('Received message is not session-------------------', msg);
         await createUserToken({ setUser });
+        window.location.reload(true)
       } else {
         setUser(msg.user);
       }
@@ -131,8 +132,6 @@ function App() {
     fetchUserSession(); // Call the async function
   }, [location, sessionOn, user]); // Dependency array ensures this runs when 'user' changes
 
-
-
   useEffect(() => {
     console.log("ppsdosownefew")
     // const params = new URLSearchParams(location.hash.slice(1));
@@ -161,7 +160,58 @@ function App() {
     }
     fn()
   }, [location, sessionOn, user]);
+  // Constants
+  const TIME_LIMIT = 1 * 60 * 60 * 1000; // 2 hours in milliseconds
+  const LAST_ACTIVITY_KEY = "lastActivity";
 
+  const updateLastActivity = () => {
+    const currentTime = new Date().getTime();
+    localStorage.setItem(LAST_ACTIVITY_KEY, currentTime.toString());
+  };
+
+  // Function to check activity timestamp on component load
+  const checkActivity = () => {
+    const lastActivity = localStorage.getItem(LAST_ACTIVITY_KEY);
+    const currentTime = new Date().getTime();
+
+    if (lastActivity) {
+      const timeDifference = currentTime - parseInt(lastActivity, 10);
+
+      if (timeDifference > TIME_LIMIT) {
+        // Reload the page if time difference exceeds the limit
+        window.location.reload();
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Check immediately on mount
+    checkActivity();
+
+    // Set up activity listeners
+    const activityHandler = () => updateLastActivity();
+    window.addEventListener("mousemove", activityHandler);
+    window.addEventListener("click", activityHandler);
+    window.addEventListener("keypress", activityHandler);
+    window.addEventListener("touchstart", activityHandler);
+
+    // Set an interval to check activity every 30 minutes
+    const interval = setInterval(() => {
+      checkActivity();
+    }, 30 * 60 * 1000); // 30 minutes in milliseconds
+
+    // Set the initial timestamp
+    updateLastActivity();
+
+    // Cleanup function to remove listeners and interval
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("mousemove", activityHandler);
+      window.removeEventListener("click", activityHandler);
+      window.removeEventListener("keypress", activityHandler);
+      window.removeEventListener("touchstart", activityHandler);
+    };
+  }, []);
   return (
     <div>
       <RoughRectangle user={user} setUser={setUser}

@@ -14,56 +14,61 @@ async function dumpData(client, user) {
             console.log('No data found to dump');
             return;
         }
-
-        // Loop through shapes to send each one to MongoDB
         for (const shape of data) {
-            if (shape.userId != user)
-                continue
+            if (shape.userId !== user)
+                continue;
             try {
-                count++;
-                // Attempt to update shape in MongoDB
                 let response = await fetch(`http://localhost:3010/api/shapes/${shape.shapeId}`, {
-                    method: 'PUT',
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+            }
+            catch (err) {
+                console.error(`Error deleting shape with ID ${shape.shapeId}:`, err);
+            }
+        }
+        for (const shape of data) {
+            if (shape.userId !== user)
+                continue;
+            try {
+                let response = await fetch(`http://localhost:3010/api/shapes`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(shape),
                 });
-
-                // If shape is not found, create it in MongoDB with POST
-                if (response.status === 404) {
-                    response = await fetch('http://localhost:3010/api/shapes', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(shape),
-                    });
-                }
-
-                // Check if the request succeeded
-                if (!response.ok) {
-                    console.log(`Failed to dump shape with ID ${shape.shapeId} to MongoDB.`);
-                    continue; // Skip deletion for this shape
-                }
-
-                // Only delete shape from Redis if it was successfully dumped
-                await client.lRem(key, 1, JSON.stringify(shape)); // Remove this shape from Redis
-                console.log(`Successfully dumped and removed shape with ID ${shape.shapeId}`);
-
-            } catch (err) {
-                console.error(`Error processing shape with ID ${shape.shapeId}:`, err);
+            }
+            catch (err) {
+                console.error(`Error posting shape with ID ${shape.shapeId}:`, err);
             }
         }
+        // ------------ removing the shapes of this user from redis -------
+        const shapes = await client.lRange(key, 0, -1);
+        const parsedShapes = shapes.map(shape => JSON.parse(shape));
+        const filtered_shapes = parsedShapes.filter((e) => {
+            if (e.userId !== user) {
+                return true;
+            }
+        })
+        console.log("filtered shapes", filtered_shapes)
+        await client.del(key);
+        // const signal = { userId: user, message: 200 }
+        // const strigifiedSignal = JSON.stringify(signal);
+        // await client.rPush(key, strigifiedSignal)
+        if (filtered_shapes.length > 0) {
+            const stringifiedShapes = filtered_shapes.map((shape) => JSON.stringify(shape));
+            await client.rPush(key, ...stringifiedShapes);
+            console.log(`New key "${key}" created `);
+        } else {
+            console.log('No values to add to the new key.');
+        }
 
-        // Check if all shapes have been removed from the Redis list
-        // const remainingShapes = await client.lLen(key);
-        // if (count === 0) {
-        // Delete the user key if no shapes remain
-        // First, retrieve the data before deletion
-        // Use lRange to retrieve all elements of the list stored in userKey
+
+        // ------- removing user entry from key="users" -------------
         const activeUsersData = await client.lRange(userKey, 0, -1);
-
         if (!activeUsersData || activeUsersData.length === 0) {
             console.log("No data found for the key:", userKey);
             return;
@@ -78,7 +83,6 @@ async function dumpData(client, user) {
 
         // Clear the original list in Redis
         await client.del(userKey);
-
         // Re-populate the list with updated data
         for (const updatedUser of updatedUsers) {
             await client.rPush(userKey, JSON.stringify(updatedUser));

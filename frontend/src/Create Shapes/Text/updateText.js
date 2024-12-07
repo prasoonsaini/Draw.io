@@ -1,11 +1,12 @@
 function updateText(
     canvasRef, e, currentShape, setCurrentShape, shape, setShape,
-    allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user, updateShape
+    allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user, updateShape, custom
 ) {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const ctx = canvas.getContext("2d");
-
+    console.log("this is updated shape", updateShape)
+    console.log("this is custom", custom)
     // Set new font size
     const newfontSize = updateShape.fontSize;
     setFont(newfontSize);
@@ -81,13 +82,18 @@ function updateText(
                     height: totalHeight + 20,
                     lines: lines,
                     text: enteredText,
-                    font: `${newfontSize}px 'Caveat', cursive`,
                     fontSize: newfontSize,
-                    fillStyle: 'orange',
                     userId: user,
-                    textFont: "'Caveat', cursive",
+                    font: `${newfontSize}px 'Caveat', cursive`,
+                    shapeId: updateShape.shapeId,
                     strokeColor: 'orange',
-                    shapeId: updateShape.shapeId
+                    userId: user,
+                    backgroundColor: 'transparent',
+                    fillType: 'none',
+                    strokeWidth: 2,
+                    strokeStyle: [0, 0],
+                    slopiness: 1,
+                    curved: true
                 };
 
                 // Update current shape to include the new text shape

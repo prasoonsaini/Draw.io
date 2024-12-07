@@ -37,6 +37,7 @@ const ShapesSchema = new Schema({
     curved: Boolean,
     shapeId: { type: Number, required: true, unique: true },
     userId: { type: String, required: true },
+    textFont: { type: String },
 }, { timestamps: true });
 
 const UserSchema = new Schema({

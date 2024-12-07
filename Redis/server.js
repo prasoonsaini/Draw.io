@@ -197,15 +197,51 @@ app.post('/user/:userId', async (req, res) => {
     }
 });
 
+app.delete('/user-shapes/:userId', async (req, res) => {
+    const userId = req.params.userId; // Ensure shapeId is a number
+    // const userId = req.header('userId')
+    console.log("userId", userId)
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    try {
+        // Retrieve the list of shapes
+        const shapesList = await client.lRange(key, 0, -1);
+        const parsedShapes = shapesList.map(shape => JSON.parse(shape));
+
+        const filtered_shapes = parsedShapes.filter((e) => {
+            if (e.userId !== userId) {
+                return true;
+            }
+        })
+        await client.del(key);
+        if (filtered_shapes.length > 0) {
+            const stringifiedShapes = filtered_shapes.map((shape) => JSON.stringify(shape));
+            await client.rPush(key, ...stringifiedShapes);
+            console.log(`New key "${key}" created with odd index values.`);
+        } else {
+            console.log('No values to add to the new key.');
+        }
+
+        res.status(200).json({ message: `All Shapes with ${userId} deleted successfully` });
+    } catch (err) {
+        console.error('Error deleting shape:', err);
+        res.status(500).json({ message: 'Error deleting shape' });
+    }
+});
 
 // Start the server
 app.listen(3020, () => {
     console.log('Server running on http://localhost:3020');
 });
 
+
+
 setInterval(async () => {
     const exists = await client.exists(key);
     if (!exists) {
+        console.log("shapes does not exist")
         return;
     } else {
         console.log("called to dump");
@@ -214,7 +250,7 @@ setInterval(async () => {
 
         // Remove extra quotes around each user key
         const userKeys = res.map(user => JSON.parse(user));
-
+        console.log("userKey", userKeys)
         for (const user of userKeys) {
             console.log("Checking user key:", user);
             const ex = await client.exists(user);
@@ -235,7 +271,7 @@ setInterval(async () => {
                 console.log(user, currentTime, storedTime, timeDifference);
 
                 // Check if time difference is within the defined range
-                if (timeDifference >= 6000000) {
+                if (timeDifference >= 7200000) {
                     console.log("Dump for", user);
                     await dumpData(client, user); // Call the function if within the time range
                 }
@@ -244,4 +280,4 @@ setInterval(async () => {
             }
         }
     }
-}, 3000000);
+}, 3600000);

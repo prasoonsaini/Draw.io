@@ -65,6 +65,18 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
   const prevShapesRefCurrent = useRef([]);
   const [clientCount, setClientCount] = useState(0)
   const [redoStack, setRedoStack] = useState([])
+  const [customiser, setCustomiser] = useState(true)
+  const [custom, setCustom] = useState({
+    stroke: '#1e1e1e',
+    background: 'transparent',
+    fill: 'none',
+    strokeWidth: 2,
+    strokeStyle: [0, 0],
+    slopiness: 1,
+    curved: true,
+    font: "'Caveat', cursive",
+    fontSize: 30
+  })
   // text ----
   const [box, setBox] = useState({ x: 100, y: 100, width: 200, height: 50 });
   const userId = location.pathname.includes('user=')
@@ -83,11 +95,17 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
       const prevCurrent = prevShapesRefCurrent.current
       const hasChanged = JSON.stringify(prevShapes) !== JSON.stringify(allshapes);
       const hasChangedCurrent = JSON.stringify(prevCurrent) !== JSON.stringify(currentShape);
+      const temp = [...allshapes]
+      temp.forEach((e) => {
+        if (e.shape === 'image') {
+          delete e.img;
+        }
+      })
       if (hasChanged || hasChangedCurrent && allshapes.length > 0) {
         const message = {
           user: user,
           session: true,
-          allshapes: allshapes,
+          allshapes: temp,
           currentShape: currentShape,
           clientCount: clientCount
         };
@@ -110,8 +128,9 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
         console.log('Received message', msg);
 
         if (!msg.session) {
-          console.log('Received message in not session', msg);
+          console.log('Received message in not session------------', msg);
           await createUserToken({ setUser });
+          window.location.reload(true)
         } else {
           setAllshapes(msg.allshapes);
           setCurrentShape(msg.currentShape);
@@ -170,9 +189,10 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
 
         // Check if the image is already loaded in memory
         let img = sh.img;
+        console.log("image", img)
         if (!img) {
           img = new Image();
-          img.src = sh.imageUrl; // Use the image URL from DB instead of Base64
+          img.src = sh.imageUrl; // Use the image URL from DB instead of Base64\
           sh.img = img; // Cache the loaded image
           // Once the image is loaded, draw it on the canvas
           img.onload = () => {
@@ -605,9 +625,9 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
       <ActionBar shape={shape} setShape={setShape} />
       <ShareButton setShare={setShare} sessionActive={sessionActive} notificationCount={clientCount} />
       {share ? <ShareWidget user={user} sessionActive={sessionActive} setSessionActive={setSessionActive} setUser={setUser} socket={socket} setSocket={setSocket} setShareWidgetRef={setShareWidgetRef} /> : <></>}
-      {selected ? <ShapeCustomizer color={color} setColor={setColor} allshapes={allshapes} setAllshapes={setAllshapes} selected={selected} selectedShape={selectedShape} user={user} /> : <></>}
+      {customiser || selected !== 'select' ? <ShapeCustomizer color={color} setColor={setColor} allshapes={allshapes} setAllshapes={setAllshapes} selected={selected} selectedShape={selectedShape} user={user} custom={custom} setCustom={setCustom} shape={shape} /> : <></>}
       <ControlPanel undo={undo} redo={redo} onZoom={onZoom} scale={scale} setScale={setScale} />
-      {shape === 'image' && <ImageUpload canvasRef={canvasRef} setAllshapes={setAllshapes} setCurrentShape={setCurrentShape} currentShape={currentShape} user={user} />}
+      {shape === 'image' && <ImageUpload canvasRef={canvasRef} setAllshapes={setAllshapes} setCurrentShape={setCurrentShape} currentShape={currentShape} user={user} setShape={setShape} />}
       <canvas
         ref={canvasRef}
         width={window.innerWidth}
@@ -617,10 +637,10 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           e.preventDefault();  // Prevent default browser behavior
           // e.stopPropagation();  // Stop event propagation
           shape === 'select' ? handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDragging, setDraggingIndex, setStartPos,
-            allshapes, setAllshapes, isResizing, setIsResizing, setResizingIndex, resizingIndex, corner, setCorner, shape, setPanning, offsetX, offsetY, zoomLevel)
-            : shape === 'text' ? handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user)
+            allshapes, setAllshapes, isResizing, setIsResizing, setResizingIndex, resizingIndex, corner, setCorner, shape, setPanning, offsetX, offsetY, zoomLevel, setCustomiser, setCustom, user)
+            : shape === 'text' ? handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user, custom, setSelected)
               : shape === "pan" ? handleMouseDownPanning(e, setIsPanDragging, setStartX, setStartY, offsetX, offsetY)
-                : handleMouseDown(canvasRef, e, allshapes, setAllshapes, setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel);
+                : handleMouseDown(canvasRef, e, allshapes, setAllshapes, setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel, custom);
         }}
 
         onMouseMove={(e) => {
@@ -642,7 +662,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
         }}
 
         onWheel={handleWheel}
-        onDoubleClick={(e) => handleDoubleClick(canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user)}
+        onDoubleClick={(e) => handleDoubleClick(canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user, custom, setSelected)}
       // Touch events for mobile devices
       // onTouchStart={(e) => {
       //   // Prevent default behavior to avoid conflicts with scrolling

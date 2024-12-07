@@ -193,7 +193,7 @@ function ShareWidget({ user, sessionActive, setSessionActive, setUser, socket, s
                         padding: "10px",
                     }}
                 >
-                    <Copy />
+                    {sessionActive && <Copy />}
                 </IconButton>
             </Box>
             {!sessionActive ? (

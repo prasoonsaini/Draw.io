@@ -1,6 +1,7 @@
-const handleImageUpload = async (event, canvasRef, setAllshapes, setCurrentShape, currentShape, user) => {
+const handleImageUpload = async (event, canvasRef, setAllshapes, setCurrentShape, currentShape, user, setShape) => {
     console.log("this is the user in handle upload fucntion", user)
     const file = event.target.files[0];
+    setShape('select')
     if (!file) {
         console.error("No file selected.");
         return;

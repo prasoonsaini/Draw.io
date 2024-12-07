@@ -1,5 +1,5 @@
 function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, setShape,
-  allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user) {
+  allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user, custom, setSelected) {
   // console.log("called")
   const canvas = canvasRef.current;
   const rect = canvas.getBoundingClientRect();
@@ -10,10 +10,11 @@ function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, set
   console.log(e)
   let width = 0;
   let height = 0;
-  const newfontSize = 30;
+  const newfontSize = custom.fontSize || 30;
+  console.log("custom: ", custom)
   setFont(newfontSize);
-  let virtualX = e.clientX + offsetX;
-  let virtualY = e.clientY + offsetY;
+  let virtualX = e.clientX - offsetX;
+  let virtualY = e.clientY - offsetY;
   // Create a textarea for entering text
   const textArea = document.createElement('textarea');
   textArea.style.position = 'absolute';
@@ -27,9 +28,9 @@ function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, set
   textArea.style.border = 'none';
   textArea.style.outline = 'none';
   textArea.style.background = 'transparent';
-  textArea.style.color = 'orange';
+  textArea.style.color = custom.stroke;
   textArea.style.fontSize = `${newfontSize}px`;
-  textArea.style.fontFamily = "'Caveat', cursive";
+  textArea.style.fontFamily = custom.font;
   textArea.style.whiteSpace = 'nowrap'; // Keep text on one line
   textArea.style.overflow = 'hidden';
   document.body.appendChild(textArea);
@@ -79,11 +80,17 @@ function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, set
             width: maxWidth + 20,
             height: totalHeight + 20,
             text: enteredText,
-            font: `${newfontSize}px "'Caveat', cursive"`,
+            font: `${newfontSize}px ${custom.font}`,
             fontSize: newfontSize,
-            textFont: "'Caveat', cursive",
-            strokeColor: 'orange',
-            userId: user
+            textFont: custom.font,
+            strokeColor: custom.stroke,
+            userId: user,
+            background: 'transparent',
+            fill: 'none',
+            strokeWidth: 2,
+            strokeStyle: [0, 0],
+            slopiness: 1,
+            curved: true
           };
 
           // Set the new shape

@@ -12,9 +12,10 @@ import getResizingArrowIndex from '../helpers(resize)/getResizingArrowIndex';
 import getClickedTextIndex from '../helpers(select)/getClickedTextIndex';
 import getResizingTextIndex from '../helpers(resize)/getResizingTextIndex';
 
-function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDragging, setDraggingIndex, setStartPos,
+async function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDragging, setDraggingIndex, setStartPos,
   allshapes, setAllshapes, isResizing, setIsResizing, setResizingIndex, resizingIndex, corner, setCorner, shape, setPanning,
-  offsetX, offsetY, zoomLevel) {
+  offsetX, offsetY, zoomLevel, setCustomiser, setCustom, user) {
+
   const canvas = canvasRef.current;
   const ctx = canvas.getContext('2d');
   const roughCanvas = rough.canvas(canvas);
@@ -41,16 +42,7 @@ function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDrag
   );
   //console.log("index", shapeIndex)
   if (shapeIndex >= 0) {
-    // Add a border to the selected shape
-    // const temp = allshapes.map((shape, index) => {
-    //   // Update the clicked shape's `current` property to true, others to false
-    //   if (index === shapeIndex) {
-    //     return { ...shape, current: true };
-    //   }
-    //   return { ...shape, current: false };
-    // });
-    // setAllshapes(temp);  // Add this if it's missing
-
+    setCustomiser(true)
     const current_shape = allshapes[shapeIndex];
     const current_shape_Active = { ...current_shape, current: true }
     console.log("current shape", current_shape);
@@ -58,6 +50,21 @@ function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDrag
     const remaining_inactive = remaining.map((shape) => {
       return { ...shape, current: false }
     })
+
+    // set custom according to the shape selected
+    console.log("adtive shape----", current_shape_Active)
+    const temp_custom = {
+      stroke: current_shape_Active.strokeColor,
+      background: current_shape_Active.backgroundColor,
+      fill: current_shape_Active.fillType,
+      strokeWidth: current_shape_Active.strokeWidth,
+      strokeStyle: current_shape_Active.strokeStyle,
+      slopiness: current_shape_Active.slopiness,
+      curved: current_shape_Active.curved,
+      font: current_shape_Active.textFont,
+      fontSize: current_shape_Active.fontSize
+    }
+    setCustom(temp_custom)
     const temp = [...remaining_inactive, current_shape_Active];
     setAllshapes(temp);
 
@@ -81,6 +88,7 @@ function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDrag
     const temp = allshapes.map((shape, index) => {
       return { ...shape, current: false };
     });
+    setCustomiser(false)
     setAllshapes(temp);
   }
   // if(resizingIndex!=-1 && getResizingRecIndex({mouseX,mouseY,allshapes,corner,setCorner})){
