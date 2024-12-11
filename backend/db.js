@@ -43,7 +43,8 @@ const ShapesSchema = new Schema({
     imageUrl: { type: String },
     ArrowHeadRef: [ArrowRefSchema],
     ArrowLegRef: [ArrowRefSchema],
-    textFont: { type: String }
+    textFont: { type: String },
+    seed: { type: Number }
 }, { timestamps: true });
 
 const UserSchema = new Schema({

@@ -240,44 +240,44 @@ app.listen(3020, () => {
 
 setInterval(async () => {
     const exists = await client.exists(key);
-    if (!exists) {
-        console.log("shapes does not exist")
-        return;
-    } else {
-        console.log("called to dump");
-        const user_key = "users";
-        const res = await client.lRange(user_key, 0, -1);
+    // if (!exists) {
+    //     console.log("shapes does not exist")
+    //     return;
+    // } else {
+    console.log("called to dump");
+    const user_key = "users";
+    const res = await client.lRange(user_key, 0, -1);
 
-        // Remove extra quotes around each user key
-        const userKeys = res.map(user => JSON.parse(user));
-        console.log("userKey", userKeys)
-        for (const user of userKeys) {
-            console.log("Checking user key:", user);
-            const ex = await client.exists(user);
-            console.log("Exists:", ex);
+    // Remove extra quotes around each user key
+    const userKeys = res.map(user => JSON.parse(user));
+    console.log("userKey", userKeys)
+    for (const user of userKeys) {
+        console.log("Checking user key:", user);
+        const ex = await client.exists(user);
+        console.log("Exists:", ex);
 
-            if (!ex) {
-                console.log(`Key for user ${user} does not exist`);
-                continue;
-            }
-
-            const reply = await client.get(user);
-            console.log("Reply:", reply);
-            if (reply) {
-                const storedTime = new Date(reply).getTime(); // Convert ISO string to timestamp
-                const currentTime = Date.now();
-                const timeDifference = currentTime - storedTime;
-
-                console.log(user, currentTime, storedTime, timeDifference);
-
-                // Check if time difference is within the defined range
-                if (timeDifference >= 7200000) {
-                    console.log("Dump for", user);
-                    await dumpData(client, user); // Call the function if within the time range
-                }
-            } else {
-                console.log(`No value found for key: ${user}`);
-            }
+        if (!ex) {
+            console.log(`Key for user ${user} does not exist`);
+            continue;
         }
+
+        const reply = await client.get(user);
+        console.log("Reply:", reply);
+        if (reply) {
+            const storedTime = new Date(reply).getTime(); // Convert ISO string to timestamp
+            const currentTime = Date.now();
+            const timeDifference = currentTime - storedTime;
+
+            console.log(user, currentTime, storedTime, timeDifference);
+
+            // Check if time difference is within the defined range
+            if (timeDifference >= 60 * 60 * 1000) {
+                console.log("Dump for", user);
+                await dumpData(client, user); // Call the function if within the time range
+            }
+        } else {
+            console.log(`No value found for key: ${user}`);
+        }
+        // }
     }
-}, 3600000);
+}, 30 * 60 * 1000);

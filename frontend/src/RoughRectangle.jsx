@@ -66,6 +66,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
   const [clientCount, setClientCount] = useState(0)
   const [redoStack, setRedoStack] = useState([])
   const [customiser, setCustomiser] = useState(true)
+  const images = new Map();
   const [custom, setCustom] = useState({
     stroke: '#1e1e1e',
     background: 'transparent',
@@ -95,17 +96,17 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
       const prevCurrent = prevShapesRefCurrent.current
       const hasChanged = JSON.stringify(prevShapes) !== JSON.stringify(allshapes);
       const hasChangedCurrent = JSON.stringify(prevCurrent) !== JSON.stringify(currentShape);
-      const temp = [...allshapes]
-      temp.forEach((e) => {
-        if (e.shape === 'image') {
-          delete e.img;
-        }
-      })
+      // const temp = [...allshapes]
+      // temp.forEach((e) => {
+      //   if (e.shape === 'image') {
+      //     delete e.img;
+      //   }
+      // })
       if (hasChanged || hasChangedCurrent && allshapes.length > 0) {
         const message = {
           user: user,
           session: true,
-          allshapes: temp,
+          allshapes: allshapes,
           currentShape: currentShape,
           clientCount: clientCount
         };
@@ -171,7 +172,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
             strokeWidth: `${sh.strokeWidth * zoomLevel}`,
             roughness: `${sh.slopiness}`,
             strokeLineDash: sh.strokeStyle,
-            seed: 12345,
+            seed: sh.seed,
           });
         }
         else {
@@ -186,16 +187,20 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
       if (sh && sh.shape === 'image' && sh.imageUrl) {
         const virtualX = sh.x - offsetX; // Adjust for horizontal panning
         const virtualY = sh.y - offsetY;
+        const normalizedUrl = sh.imageUrl.trim(); // Normalize the URL
+        console.log("Normalized Image URL:", normalizedUrl);
+        console.log("Images map before check:", images);
+        const cachedImg = images.get(normalizedUrl);
+        console.log("Cached image:", cachedImg);
+        if (!cachedImg || !(cachedImg instanceof Image) || !cachedImg.complete) {
+          const img = new Image();
+          img.src = normalizedUrl;
 
-        // Check if the image is already loaded in memory
-        let img = sh.img;
-        console.log("image", img)
-        if (!img) {
-          img = new Image();
-          img.src = sh.imageUrl; // Use the image URL from DB instead of Base64\
-          sh.img = img; // Cache the loaded image
-          // Once the image is loaded, draw it on the canvas
           img.onload = () => {
+            console.log(`Image loaded: ${normalizedUrl}`);
+            images.set(normalizedUrl, img); // Store the normalized URL
+            console.log("Updated images map:", Array.from(images.keys()));
+
             ctx.drawImage(
               img,
               virtualX * zoomLevel,
@@ -206,12 +211,14 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           };
 
           img.onerror = () => {
-            console.error("Failed to load image from:", sh.imageUrl);
+            console.error(`Failed to load image: ${sh.imageUrl}`);
           };
         } else {
-          // If image is already loaded, just draw it
+          // Use the cached image
+          console.log("Using cached image:", cachedImg);
+
           ctx.drawImage(
-            img,
+            cachedImg,
             virtualX * zoomLevel,
             virtualY * zoomLevel,
             sh.width * zoomLevel,
@@ -242,7 +249,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           strokeLineDash: sh.strokeStyle,
           fillWeight: 1,
           roughness: `${sh.slopiness}`,
-          seed: 12345
+          seed: sh.seed
         });
         if (sh.current) {
           resizeBorder({ canvasRef, x: sh.x - sh.diameter / 2 - 10, y: sh.y - sh.diameter / 2 - 10, width: sh.diameter + 20, height: sh.diameter + 20 })
@@ -255,7 +262,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
         const virtualStartX = sh.startX - offsetX
         const virtualStartY = sh.startY - offsetY
         roughCanvas.line(virtualStartX * zoomLevel, virtualStartY * zoomLevel, virtualEndX * zoomLevel, virtualEndY * zoomLevel, {
-          seed: 12345,
+          seed: sh.seed,
           stroke: `${sh.strokeColor}`,
           strokeWidth: `${sh.strokeWidth}`,
           strokeLineDash: sh.strokeStyle,
@@ -271,7 +278,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           virtualEndX * zoomLevel - arrowHeadLength * Math.cos(angle - Math.PI / 6),
           virtualEndY * zoomLevel - arrowHeadLength * Math.sin(angle - Math.PI / 6),
           {
-            seed: 12345,
+            seed: sh.seed,
             stroke: `${sh.strokeColor}`,
             strokeWidth: `${sh.strokeWidth}`,
             strokeLineDash: sh.strokeStyle,
@@ -286,7 +293,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           virtualEndX * zoomLevel - arrowHeadLength * Math.cos(angle + Math.PI / 6),
           virtualEndY * zoomLevel - arrowHeadLength * Math.sin(angle + Math.PI / 6),
           {
-            seed: 12345,
+            seed: sh.seed,
             stroke: `${sh.strokeColor}`,
             strokeWidth: `${sh.strokeWidth}`,
             strokeLineDash: sh.strokeStyle,
@@ -329,7 +336,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
                 strokeWidth: `${sh.strokeWidth}`,
                 roughness: `${sh.slopiness}`,
                 strokeLineDash: sh.strokeStyle,
-                seed: 12345
+                seed: sh.seed
               }
             );
           }
@@ -353,7 +360,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
         const virtualY = sh.y - offsetY
         roughCanvas.ellipse(virtualX * zoomLevel, virtualY * zoomLevel,
           sh.width * zoomLevel, sh.height * zoomLevel, {
-          seed: 12345,
+          seed: sh.seed,
           stroke: `${sh.strokeColor}`,
           fill: `${sh.backgroundColor}`,
           strokeWidth: `${sh.strokeWidth}`,
@@ -428,7 +435,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
             strokeWidth: `${currentShape.strokeWidth}`,
             strokeLineDash: currentShape.strokeStyle,
             roughness: 1,
-            seed: 12345,
+            seed: currentShape.seed,
             roughness: `${currentShape.slopiness}`,         // Controls how rough the edges are
             bowing: 1,             // Controls the wobbliness of the lines
             curveStepCount: 1000
@@ -452,7 +459,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
           fillStyle: `${currentShape.fillType}`,
           roughness: `${currentShape.slopiness}`,
           strokeLineDash: currentShape.strokeStyle,
-          seed: 12345
+          seed: currentShape.sh.seed
         })
       }
       if (shape === 'line') {
@@ -475,7 +482,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
         }
       }
       if (shape === 'hand') {
-        const { points, strokeColor, strokeWidth, slopiness, strokeStyle } = currentShape;
+        const { points, strokeColor, strokeWidth, slopiness, strokeStyle, seed } = currentShape;
 
         // If there are no points to draw, return early
         if (!points || points.length < 5) return;
@@ -494,7 +501,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
               x2 * zoomLevel,
               y2 * zoomLevel,
               {
-                seed: 12345,
+                seed: seed,
                 stroke: strokeColor,
                 strokeWidth,
                 roughness: slopiness,
@@ -514,7 +521,7 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
         const virtualX = currentShape.x - offsetX
         const virtualY = currentShape.y - offsetY
         roughCanvas.ellipse(virtualX * zoomLevel, virtualY * zoomLevel, currentShape.width * zoomLevel, currentShape.height * zoomLevel, {
-          seed: 12345,
+          seed: currentShape.seed,
           stroke: `${currentShape.strokeColor}`,
           fill: `${currentShape.backgroundColor}`,
           fillStyle: `${currentShape.fillType}`,

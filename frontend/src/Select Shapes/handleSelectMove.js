@@ -13,6 +13,7 @@ function handleSelectMove(canvasRef, e, startPos, draggingIndex, isDragging,
     if (isDragging && draggingIndex !== null) {
         const dx = mouseX - startPos.x;
         const dy = mouseY - startPos.y;
+        canvas.style.cursor = 'move';
         // resizeBorder({canvasRef,x: 7, y: 6, width: 100, height: 100})
         // Update the starting position for the next move
         // Move the dragged rectangle

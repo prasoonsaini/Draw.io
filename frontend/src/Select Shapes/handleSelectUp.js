@@ -2,18 +2,18 @@ import ArrowNearShape from "../helpers(select)/ArrowNearShape";
 
 async function handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingIndex, setIsResizing,
     setResizingIndex, isResizing, panning, setPanning, allshapes, setAllshapes, user) {
-    console.log("dragging stopped")
+    // console.log("dragging stopped")
     if (isDragging) {
         // Stop dragging
         setIsDragging(false);
         setDraggingIndex(null);
         const shapes = allshapes
         for (const temp of shapes) {
-            if (temp.shape === 'image') {
-                console.log("temp before", temp)
-                delete temp.img;
-                console.log("temp after", temp)
-            }
+            // if (temp.shape === 'image') {
+            //     console.log("temp before", temp)
+            //     delete temp.img;
+            //     console.log("temp after", temp)
+            // }
 
             try {
                 // const i = { ...temp, userId: user }
@@ -85,11 +85,9 @@ async function handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingI
                         // Call PUT or additional logic if needed
                     }
                 }
-                if (temp.shape === 'image') {
-                    console.log("temp before", temp)
-                    delete temp.img;
-                    console.log("temp after", temp)
-                }
+                // if (temp.shape === 'image') {
+                //     delete temp.img;
+                // }
                 const response = await fetch(`http://localhost:3020/shapes/${temp.shapeId}`, {
                     method: 'PUT',
                     headers: {

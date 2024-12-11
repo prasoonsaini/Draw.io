@@ -30,7 +30,8 @@ const handleMouseUp = async (canvasRef, isDrawing, currentShape, allshapes, setC
             temp = { ...temp, current: false, userId: user };
 
         // Update states
-        setShape('select');
+        if (temp.shape !== 'hand')
+            setShape('select');
         setCurrentShape(temp);
         setAllshapes([temp, ...updatedShapes]);
         console.log("setUndoStack:", typeof setUndoStack);

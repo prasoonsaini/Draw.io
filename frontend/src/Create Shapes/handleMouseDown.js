@@ -17,18 +17,25 @@ const handleMouseDown = (canvasRef, e, allshapes, setAllshapes, setIsDrawing, se
     if (shape === 'rec') {
         setCurrentShape({
             shape: 'rec', x: mouseX, y: mouseY, width: 0, height: 0, current: true, strokeColor: custom.stroke, backgroundColor: custom.background,
-            fillType: custom.fill, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle, curved: custom.curved
+            fillType: custom.fill, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle, curved: custom.curved,
+            seed: Math.floor(Math.random() * 1000)
         });
     }
     else if (shape === 'cir') {
         setCurrentShape({
             shape: 'cir', x: mouseX, y: mouseY, diameter: 0, current: true, strokeColor: custom.stroke,
-            backgroundColor: custom.background, fillType: custom.fill, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle
+            backgroundColor: custom.background, fillType: custom.fill, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle,
+            seed: Math.floor(Math.random() * 1000)
         });
     }
     else if (shape === "line") {
         const arrowId = Math.floor(Math.random() * 100000);
-        setCurrentShape({ shape: 'line', startX: mouseX, startY: mouseY, endX: mouseX, endY: mouseY, current: true, strokeColor: custom.stroke, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle, ArrowHeadRef: [], ArrowLegRef: [], shapeId: arrowId });
+        setCurrentShape({
+            shape: 'line', startX: mouseX, startY: mouseY, endX: mouseX, endY: mouseY, current: true,
+            strokeColor: custom.stroke, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle,
+            ArrowHeadRef: [], ArrowLegRef: [], shapeId: arrowId,
+            seed: Math.floor(Math.random() * 1000)
+        });
         const leg_shapeId = ArrowNearShape(mouseX, mouseY, allshapes);
         if (leg_shapeId > 0) {
             console.log("arrow leg found", leg_shapeId);
@@ -52,12 +59,17 @@ const handleMouseDown = (canvasRef, e, allshapes, setAllshapes, setIsDrawing, se
         }
     }
     else if (shape === "hand") {
-        setCurrentShape({ shape: 'hand', points: [{ x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }], current: true, strokeColor: custom.stroke, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle });
+        setCurrentShape({
+            shape: 'hand', points: [{ x: mouseX, y: mouseY }, { x: mouseX, y: mouseY }],
+            current: true, strokeColor: custom.stroke, strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle,
+            seed: Math.floor(Math.random() * 1000)
+        });
     }
     else if (shape === "ellipse") {
         setCurrentShape({
             shape: 'ellipse', x: mouseX, y: mouseY, width: 0, height: 0, current: true, strokeColor: custom.stroke, backgroundColor: custom.background, fillType: custom.fill,
-            strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle
+            strokeWidth: custom.strokeWidth, slopiness: custom.slopiness, strokeStyle: custom.strokeStyle,
+            seed: Math.floor(Math.random() * 1000)
         });
     }
 };

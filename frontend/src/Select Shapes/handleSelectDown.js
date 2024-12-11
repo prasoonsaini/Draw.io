@@ -80,11 +80,13 @@ async function handleSelectDown(canvasRef, e, currentShape, setCurrentShape, set
     else {
       setIsDragging(true);
       setDraggingIndex(allshapes.length - 1);
+      canvas.style.cursor = 'move';
       console.log("shapIndex", shapeIndex)
       setStartPos({ x: mouseX, y: mouseY });
     }
   }
   else {
+    canvas.style.cursor = 'default';
     const temp = allshapes.map((shape, index) => {
       return { ...shape, current: false };
     });

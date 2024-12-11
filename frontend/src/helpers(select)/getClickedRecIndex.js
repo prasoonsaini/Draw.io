@@ -3,13 +3,6 @@ const getClickedRecIndex = (mouseX, mouseY, allshapes) => {
     if (allshapes[i].shape != 'rec' && allshapes[i].shape != 'image')
       continue;
     const rec = allshapes[i];
-    // if((mouseX >= rec.x - 10 && mouseX<= rec.x+10 && mouseY>=rec.y-10 && mouseY<= rec.y+rec.height+10)
-    //  || (mouseX <= rec.x + rec.width + 10 && mouseX >= rec.x + rec.width - 10 && mouseY<=rec.y+rec.height+10 && mouseY>=rec.y-10) 
-    //  || (mouseY >= rec.y - 10 && mouseY <= rec.y +10 && mouseX>=rec.x-10 && mouseX<= rec.x+rec.width+10) 
-    //  || (mouseY <= rec.y + rec.height + 10 && mouseY >= rec.y + rec.height - 10 && mouseX<=rec.x+rec.width+10 && mouseX>=rec.x-10)){
-    //   console.log("clicked")
-    //   return i;
-    // }
     if (rec.width < 0) {
       rec.x = rec.x + rec.width;
       rec.width *= -1
@@ -25,3 +18,4 @@ const getClickedRecIndex = (mouseX, mouseY, allshapes) => {
 }
 
 export default getClickedRecIndex;
+

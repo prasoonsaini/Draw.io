@@ -477,12 +477,12 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     <p>slopiness</p>
                 </div>
                 <div className='color-parent'>
+                    <button className="color" style={{ background: custom.slopiness === 0 ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('Slopiness1', () => changeSlopiness(0))}><Slopiness1 /></button>
                     <button className="color" style={{ background: custom.slopiness === 1 ? '#7ee4fa' : '' }}
-                        onClick={() => handleButtonClick('Slopiness1', () => changeSlopiness(1))}><Slopiness1 /></button>
-                    <button className="color" style={{ background: custom.slopiness === 1.5 ? '#7ee4fa' : '' }}
-                        onClick={() => handleButtonClick('Slopiness2', () => changeSlopiness(1.5))}><Slopiness2 /></button>
-                    <button className="color" style={{ background: custom.slopiness === 2 ? '#7ee4fa' : '' }}
-                        onClick={() => handleButtonClick('Slopiness3', () => changeSlopiness(2))}><Slopiness3 /></button>
+                        onClick={() => handleButtonClick('Slopiness2', () => changeSlopiness(1))}><Slopiness2 /></button>
+                    <button className="color" style={{ background: custom.slopiness === 3 ? '#7ee4fa' : '' }}
+                        onClick={() => handleButtonClick('Slopiness3', () => changeSlopiness(3))}><Slopiness3 /></button>
                 </div>
             </div> : <></>}
             {shape === 'rec' || selected === 'rec' && shape !== 'image' && shape !== 'hand' &&
