@@ -1,5 +1,6 @@
 // dump.js
-import fetch from 'node-fetch';
+const fetch = await import('node-fetch');
+
 
 async function dumpData(client, user) {
     const key = "shapes";

@@ -1,15 +1,20 @@
-const express = require('express');
-const redis = require('redis');
-const cors = require('cors');
-const { default: dumpData } = require('./dump');
+// const express = require('express');
+// const redis = require('redis');
+// const cors = require('cors');
+import express from 'express'
+import redis from 'redis'
+import cors from 'cors'
+// const { default: dumpData } = require('./dump');
+import dumpData from './dump.js'
 const app = express();
 app.use(express.json()); // Middleware to parse JSON request body
 app.use(cors())
 const key = "shapes"
 // Connect to Redis
 const client = redis.createClient({
-    url: 'redis://127.0.0.1:6379' // Adjust if using different host or port
+    url: 'redis://host.docker.internal:6379', // Connect to Redis running on the host
 });
+
 
 client.connect()
     .then(() => console.log('Connected to Redis'))
