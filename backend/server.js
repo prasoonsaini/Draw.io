@@ -1,32 +1,38 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const shapeRoutes = require('./routes/shapes'); // Adjust the path as necessary
+const shapeRoutes = require('./routes/shapes');
 const userRoutes = require('./routes/user');
 const app = express();
 
-// Middleware to parse JSON
+// Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors()); // Adjust origin
 
-// Use the routes
+// Routes
 app.use('/api/shapes', shapeRoutes);
 app.use('/api/user', userRoutes);
 
-// Start the server with DB connection
-const PORT = process.env.PORT || 3010;
-mongoose.connect('mongodb+srv://prasoon:pAojg4Ta3MpOkgPM@cluster0.re9vc.mongodb.net/Draw', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 20000, // Increase timeout to 20 seconds
-    socketTimeoutMS: 45000, // Increase socket timeout to 45 seconds
-})
-    .then(() => {
-        console.log("Connected to DB");
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+// MongoDB connection
+let isConnected = false; // To track the connection status
+
+const connectToDB = async () => {
+    if (!isConnected) {
+        await mongoose.connect(process.env.MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 20000,
+            socketTimeoutMS: 45000,
         });
-    })
-    .catch(err => {
-        console.error("Failed to connect to DB", err);
-    });
+        isConnected = true;
+        console.log('Connected to DB');
+    }
+};
+
+// Vercel handler
+app.use(async (req, res, next) => {
+    await connectToDB();
+    next();
+});
+
+module.exports = app; // No app.listen() for Vercel
