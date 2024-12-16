@@ -75,7 +75,7 @@ const handleImageUpload = async (event, canvasRef, setAllshapes, setCurrentShape
                 setAllshapes((prevShapes) => [...prevShapes, newImageShape]);
                 // Save shape data to backend
                 try {
-                    const response = await fetch(`http://localhost:3020/shapes`, {
+                    const response = await fetch(`http://localhost:3010/api/shapes`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(newImageShape),

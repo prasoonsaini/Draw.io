@@ -18,8 +18,8 @@ function App() {
     const socket = new WebSocket('ws://localhost:8080');
     const fetchShapes = async () => {
       try {
-        const response = await fetch(`http://localhost:3020/shapes/${user}`); // Fetch shapes from the API
-
+        // 1. const response = await fetch(`http://localhost:3020/shapes/${user}`); // Fetch shapes from the API
+        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${user}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -46,18 +46,18 @@ function App() {
         const message = { user: user, session: true };
         socket.send(JSON.stringify(message));  // Send as JSON string
 
-        const res = await fetch(`http://localhost:3020/user/${message.user}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
+        // const res = await fetch(`http://localhost:3020/user/${message.user}`, {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        // });
 
-        const user_exist = await res.json();
-        console.log("user exist", user_exist);
+        // const user_exist = await res.json();
+        // console.log("user exist", user_exist);
 
-        if (!user_exist.exist) {
+        if (1) {
           console.log("No user exists in Redis, fetching data from MongoDB");
 
-          const response = await fetch(`http://localhost:3010/api/shapes/${message.user}`);
+          const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${message.user}`);
           if (!response.ok) {
             console.log('Unable to fetch shapes from MongoDB');
             return;
@@ -67,26 +67,27 @@ function App() {
           console.log("Fetched shapes:", shapes);
 
           // Push all shapes to Redis and set them in the state
-          await Promise.all(
-            shapes.map(async (shape) => {
-              const postRes = await fetch('http://localhost:3020/shapes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(shape),
-              });
-              if (!postRes.ok) {
-                console.log('Unable to post shape to Redis', shape);
-                throw new Error('Error posting shape to Redis');
-              }
-              return shape;
-            })
-          );
+          // await Promise.all(
+          //   shapes.map(async (shape) => {
+          //     const postRes = await fetch('http://localhost:3020/shapes', {
+          //       method: 'POST',
+          //       headers: { 'Content-Type': 'application/json' },
+          //       body: JSON.stringify(shape),
+          //     });
+          //     if (!postRes.ok) {
+          //       console.log('Unable to post shape to Redis', shape);
+          //       throw new Error('Error posting shape to Redis');
+          //     }
+          //     return shape;
+          //   })
+          // );
 
           console.log("All shapes pushed to Redis, updating state");
           setAllshapes(shapes);
         }
         else {
           user ? fetchShapes() : null;
+          fetchShapes()
         }
       }
     };
@@ -112,7 +113,7 @@ function App() {
   useEffect(() => {
     async function fetchUserSession() {
       try {
-        const response = await fetch(`http://localhost:3010/api/user/${user}`, {
+        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/user/${user}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -160,58 +161,58 @@ function App() {
     }
     fn()
   }, [location, sessionOn, user]);
-  // Constants
-  const TIME_LIMIT = 1 * 60 * 60 * 1000; // 2 hours in milliseconds
-  const LAST_ACTIVITY_KEY = "lastActivity";
+  // // Constants
+  // const TIME_LIMIT = 1 * 60 * 60 * 1000; // 2 hours in milliseconds
+  // const LAST_ACTIVITY_KEY = "lastActivity";
 
-  const updateLastActivity = () => {
-    const currentTime = new Date().getTime();
-    localStorage.setItem(LAST_ACTIVITY_KEY, currentTime.toString());
-  };
+  // const updateLastActivity = () => {
+  //   const currentTime = new Date().getTime();
+  //   localStorage.setItem(LAST_ACTIVITY_KEY, currentTime.toString());
+  // };
 
-  // Function to check activity timestamp on component load
-  const checkActivity = () => {
-    const lastActivity = localStorage.getItem(LAST_ACTIVITY_KEY);
-    const currentTime = new Date().getTime();
+  // // Function to check activity timestamp on component load
+  // const checkActivity = () => {
+  //   const lastActivity = localStorage.getItem(LAST_ACTIVITY_KEY);
+  //   const currentTime = new Date().getTime();
 
-    if (lastActivity) {
-      const timeDifference = currentTime - parseInt(lastActivity, 10);
+  //   if (lastActivity) {
+  //     const timeDifference = currentTime - parseInt(lastActivity, 10);
 
-      if (timeDifference > TIME_LIMIT) {
-        // Reload the page if time difference exceeds the limit
-        window.location.reload();
-      }
-    }
-  };
+  //     if (timeDifference > TIME_LIMIT) {
+  //       // Reload the page if time difference exceeds the limit
+  //       window.location.reload();
+  //     }
+  //   }
+  // };
 
-  useEffect(() => {
-    // Check immediately on mount
-    checkActivity();
+  // useEffect(() => {
+  //   // Check immediately on mount
+  //   checkActivity();
 
-    // Set up activity listeners
-    const activityHandler = () => updateLastActivity();
-    window.addEventListener("mousemove", activityHandler);
-    window.addEventListener("click", activityHandler);
-    window.addEventListener("keypress", activityHandler);
-    window.addEventListener("touchstart", activityHandler);
+  //   // Set up activity listeners
+  //   const activityHandler = () => updateLastActivity();
+  //   window.addEventListener("mousemove", activityHandler);
+  //   window.addEventListener("click", activityHandler);
+  //   window.addEventListener("keypress", activityHandler);
+  //   window.addEventListener("touchstart", activityHandler);
 
-    // Set an interval to check activity every 30 minutes
-    const interval = setInterval(() => {
-      checkActivity();
-    }, 30 * 60 * 1000); // 30 minutes in milliseconds
+  //   // Set an interval to check activity every 30 minutes
+  //   const interval = setInterval(() => {
+  //     checkActivity();
+  //   }, 30 * 60 * 1000); // 30 minutes in milliseconds
 
-    // Set the initial timestamp
-    updateLastActivity();
+  //   // Set the initial timestamp
+  //   updateLastActivity();
 
-    // Cleanup function to remove listeners and interval
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("mousemove", activityHandler);
-      window.removeEventListener("click", activityHandler);
-      window.removeEventListener("keypress", activityHandler);
-      window.removeEventListener("touchstart", activityHandler);
-    };
-  }, []);
+  //   // Cleanup function to remove listeners and interval
+  //   return () => {
+  //     clearInterval(interval);
+  //     window.removeEventListener("mousemove", activityHandler);
+  //     window.removeEventListener("click", activityHandler);
+  //     window.removeEventListener("keypress", activityHandler);
+  //     window.removeEventListener("touchstart", activityHandler);
+  //   };
+  // }, []);
   return (
     <div>
       <RoughRectangle user={user} setUser={setUser}

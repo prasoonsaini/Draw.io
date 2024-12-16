@@ -17,7 +17,7 @@ async function handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingI
 
             try {
                 // const i = { ...temp, userId: user }
-                const response = await fetch(`http://localhost:3020/shapes/${temp.shapeId}`, {
+                const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${temp.shapeId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ async function handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingI
                 // if (temp.shape === 'image') {
                 //     delete temp.img;
                 // }
-                const response = await fetch(`http://localhost:3020/shapes/${temp.shapeId}`, {
+                const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${temp.shapeId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

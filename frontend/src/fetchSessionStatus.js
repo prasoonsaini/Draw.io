@@ -11,7 +11,7 @@ const fetchSessionStatus = async (userId) => {
     if (userId) {
 
         try {
-            const response = await fetch(`http://localhost:3010/api/user/${userId}`, {
+            const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/user/${userId}`, {
                 method: 'GET'
             });
             if (response.ok) {

@@ -33,7 +33,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     // Update the color of the selected shape
                     const updatedShape = { ...shape, strokeColor: newColor };
                     try {
-                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     const updatedShape = { ...shape, backgroundColor: newColor };
 
                     try {
-                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 if (shape.current) {
                     const updatedShape = { ...shape, fillType: fillType };
                     try {
-                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 if (shape.current) {
                     const updatedShape = { ...shape, strokeWidth: width };
                     try {
-                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -151,7 +151,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 if (shape.current) {
                     const updatedShape = { ...shape, slopiness: slopiness };
                     try {
-                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -180,7 +180,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 if (shape.current) {
                     const updatedShape = { ...shape, strokeStyle: strokeStyle };
                     try {
-                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -211,7 +211,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
         await Promise.all(allshapes.map(async (shape) => {
             if (shape.current) {
                 console.log("shape", shape)
-                await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${shape.shapeId}`, {
                     method: 'DELETE',
                     headers: {
                         'userId': user
@@ -252,7 +252,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 newShape.endY += 50;
                 newShape.shapeId = RAND_NUM
                 console.log("shape", newShape)
-                await fetch(`http://localhost:3020/shapes`, {
+                await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -282,7 +282,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                 if (shape.current) {
                     const updatedShape = { ...shape, curved: curved };
                     try {
-                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -313,7 +313,7 @@ function ShapeCustomizer({ allshapes, setAllshapes, selected, selectedShape, use
                     // Update the color of the selected shape
                     const updatedShape = { ...shape, textFont: font };
                     try {
-                        const response = await fetch(`http://localhost:3020/shapes/${shape.shapeId}`, {
+                        const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/shapes/${shape.shapeId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',

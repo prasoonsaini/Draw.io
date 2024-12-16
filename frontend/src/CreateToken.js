@@ -6,7 +6,7 @@ const createUserToken = async ({ setUser }) => {
         token = uuidv4();
         localStorage.setItem("drawingToken", token);
         console.log("New token generated:", token);
-        await fetch("http://localhost:3010/api/user", {
+        await fetch("https://draw-io-z8ub-backend.vercel.app/api/user", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

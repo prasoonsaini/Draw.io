@@ -99,7 +99,7 @@ function handleWriteDown(canvasRef, e, currentShape, setCurrentShape, shape, set
           try {
             temp.current = false
             temp.shapeId = Math.floor(Math.random() * 10000);
-            const response = await fetch('http://localhost:3020/shapes', {
+            const response = await fetch('https://draw-io-z8ub-backend.vercel.app/api/shapes', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
