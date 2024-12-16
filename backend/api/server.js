@@ -18,7 +18,7 @@ app.use('/api/user', userRoutes);
 let isConnected = false;
 const connectToDB = async () => {
     if (!isConnected) {
-        await mongoose.connect(process.env.MONGODB_URI, {
+        await mongoose.connect('mongodb+srv://prasoon:pAojg4Ta3MpOkgPM@cluster0.re9vc.mongodb.net/Draw', {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             serverSelectionTimeoutMS: 20000,
