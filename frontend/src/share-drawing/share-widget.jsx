@@ -138,7 +138,7 @@ function ShareWidget({ user, sessionActive, setSessionActive, setUser, socket, s
 
     // )
     const handleCopy = () => {
-        navigator.clipboard.writeText(`http://localhost:3000/user=${user}/session=${sessionToken}`);
+        navigator.clipboard.writeText(`https://draw-io-z8ub-backend.vercel.app/user=${user}/session=${sessionToken}`);
         // ("Link copied to clipboard!");alert
     };
     return (
@@ -171,7 +171,7 @@ function ShareWidget({ user, sessionActive, setSessionActive, setUser, socket, s
                 }}
             >
                 <TextField
-                    value={`http://localhost:3000/user=${user}/session=${sessionToken}`}
+                    value={`https://draw-io-z8ub-backend.vercel.app/user=${user}/session=${sessionToken}`}
                     InputProps={{
                         readOnly: true,
                     }}
