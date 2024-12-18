@@ -24,7 +24,7 @@ function ShareWidget({ user, sessionActive, setSessionActive, setUser, socket, s
         async function getSession() {
             try {
                 console.log("user in share widget", user)
-                const response = await fetch(`http://localhost:3010/api/user/${user}`, {
+                const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/user/${user}`, {
                     method: 'GET'
                 })
                 const data = await response.json()
@@ -62,7 +62,7 @@ function ShareWidget({ user, sessionActive, setSessionActive, setUser, socket, s
             console.log("WebSocket is not open.");
         }
         try {
-            const response = await fetch(`http://localhost:3010/api/user/${user}`, {
+            const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/user/${user}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ function ShareWidget({ user, sessionActive, setSessionActive, setUser, socket, s
         };
 
         try {
-            const response = await fetch(`http://localhost:3010/api/user/${user}`, {
+            const response = await fetch(`https://draw-io-z8ub-backend.vercel.app/api/user/${user}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
