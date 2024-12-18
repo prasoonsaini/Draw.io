@@ -16,7 +16,7 @@ function App() {
   const [undoStack, setUndoStack] = useState([]);
   useEffect(() => {
     // const socket = new WebSocket('ws://localhost:8080');
-    const socket = new WebSocket('ws://web-production-d6ce0.up.railway.app/');
+    const socket = new WebSocket('wss://web-production-d6ce0.up.railway.app/');
     const fetchShapes = async () => {
       try {
         // 1. const response = await fetch(`http://localhost:3020/shapes/${user}`); // Fetch shapes from the API
