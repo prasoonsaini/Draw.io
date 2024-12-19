@@ -85,4 +85,15 @@ router.delete('/:shapeId', async (req, res) => {
     }
 });
 
+router.delete('/delete-all', async (req, res) => {
+    try {
+        await ShapesModel.deleteMany({});
+        res.json({ message: "All shapes deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting shapes:", error);
+        res.status(500).json({ error: "Failed to delete shapes" });
+    }
+});
+
+
 module.exports = router;
