@@ -640,8 +640,9 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
         width={window.innerWidth}
         height={window.innerHeight}
         // style={{ border: '1px solid black' }}
+
         onMouseDown={(e) => {
-          e.preventDefault();  // Prevent default browser behavior
+          e.preventDefault(); // Prevent default browser behavior
           // e.stopPropagation();  // Stop event propagation
           shape === 'select' ? handleSelectDown(canvasRef, e, currentShape, setCurrentShape, setIsDragging, setDraggingIndex, setStartPos,
             allshapes, setAllshapes, isResizing, setIsResizing, setResizingIndex, resizingIndex, corner, setCorner, shape, setPanning, offsetX, offsetY, zoomLevel, setCustomiser, setCustom, user)
@@ -650,18 +651,46 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
                 : handleMouseDown(canvasRef, e, allshapes, setAllshapes, setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel, custom);
         }}
 
+        onTouchStart={(e) => {
+          e.preventDefault();
+          const touch = e.touches[0]; // Get the first touch
+          shape === 'select' ? handleSelectDown(canvasRef, touch, currentShape, setCurrentShape, setIsDragging, setDraggingIndex, setStartPos,
+            allshapes, setAllshapes, isResizing, setIsResizing, setResizingIndex, resizingIndex, corner, setCorner, shape, setPanning, offsetX, offsetY, zoomLevel, setCustomiser, setCustom, user)
+            : shape === 'text' ? handleWriteDown(canvasRef, touch, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user, custom, setSelected)
+              : shape === "pan" ? handleMouseDownPanning(touch, setIsPanDragging, setStartX, setStartY, offsetX, offsetY)
+                : handleMouseDown(canvasRef, touch, allshapes, setAllshapes, setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel, custom);
+        }}
+
         onMouseMove={(e) => {
-          e.preventDefault();  // Prevent default browser behavior
-          e.stopPropagation();  // Stop event propagation
+          e.preventDefault();
+          e.stopPropagation();
           shape === 'select' ? handleSelectMove(canvasRef, e, startPos, draggingIndex, isDragging, setStartPos, allshapes, setAllshapes,
             isResizing, setIsResizing, resizingIndex, corner, shape, panning, offsetX, offsetY, zoomLevel, box)
             : shape === "pan" ? handleMouseMovePanning(e, isPanDragging, setOffsetX, setOffsetY, startX, startY)
               : handleMouseMove(canvasRef, e, isDrawing, currentShape, setCurrentShape, shape, offsetX, offsetY, zoomLevel);
         }}
 
+        onTouchMove={(e) => {
+          e.preventDefault();
+          const touch = e.touches[0];
+          shape === 'select' ? handleSelectMove(canvasRef, touch, startPos, draggingIndex, isDragging, setStartPos, allshapes, setAllshapes,
+            isResizing, setIsResizing, resizingIndex, corner, shape, panning, offsetX, offsetY, zoomLevel, box)
+            : shape === "pan" ? handleMouseMovePanning(touch, isPanDragging, setOffsetX, setOffsetY, startX, startY)
+              : handleMouseMove(canvasRef, touch, isDrawing, currentShape, setCurrentShape, shape, offsetX, offsetY, zoomLevel);
+        }}
+
         onMouseUp={(e) => {
-          e.preventDefault();  // Prevent default browser behavior
-          e.stopPropagation();  // Stop event propagation
+          e.preventDefault();
+          e.stopPropagation();
+          shape === 'select' ? handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingIndex,
+            setIsResizing, setResizingIndex, isResizing, panning, setPanning, allshapes, setAllshapes, user)
+            : shape === "pan" ? handleMouseUpPanning(setIsPanDragging)
+              : handleMouseUp(canvasRef, isDrawing, currentShape, allshapes, setCurrentShape, setAllshapes, setIsDrawing, setShape, user, undoStack, setUndoStack);
+        }}
+
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          const touch = e.changedTouches[0]; // Get the first touch that ended
           shape === 'select' ? handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingIndex,
             setIsResizing, setResizingIndex, isResizing, panning, setPanning, allshapes, setAllshapes, user)
             : shape === "pan" ? handleMouseUpPanning(setIsPanDragging)
@@ -670,36 +699,6 @@ const RoughCanvas = ({ user, setUser, sessionActive, setSessionActive, socket, s
 
         onWheel={handleWheel}
         onDoubleClick={(e) => handleDoubleClick(canvasRef, e, currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user, custom, setSelected)}
-      // Touch events for mobile devices
-      // onTouchStart={(e) => {
-      //   // Prevent default behavior to avoid conflicts with scrolling
-      //   e.preventDefault();
-      //   e.stopPropagation();
-      //   shape === 'select' ? handleSelectDown(canvasRef, e.touches[0], currentShape, setCurrentShape, setIsDragging, setDraggingIndex, setStartPos,
-      //     allshapes, setAllshapes, isResizing, setIsResizing, setResizingIndex, resizingIndex, corner, setCorner, shape, setPanning, offsetX, offsetY, zoomLevel)
-      //     : shape === 'text' ? handleWriteDown(canvasRef, e.touches[0], currentShape, setCurrentShape, shape, setShape, allshapes, setAllshapes, font, setFont, offsetX, offsetY, zoomLevel, user)
-      //       : shape === "pan" ? handleMouseDownPanning(e.touches[0], setIsPanDragging, setStartX, setStartY, offsetX, offsetY)
-      //         : handleMouseDown(canvasRef, e.touches[0], setIsDrawing, setCurrentShape, shape, setShape, offsetX, offsetY, zoomLevel);
-      // }}
-
-      // onTouchMove={(e) => {
-      //   // Prevent default behavior to avoid conflicts with scrolling
-      //   e.preventDefault();
-      //   e.stopPropagation();
-      //   shape === 'select' ? handleSelectMove(canvasRef, e.touches[0], startPos, draggingIndex, isDragging, setStartPos, setAllshapes,
-      //     isResizing, setIsResizing, resizingIndex, corner, shape, panning, offsetX, offsetY, zoomLevel)
-      //     : shape === "pan" ? handleMouseMovePanning(e.touches[0], isPanDragging, setOffsetX, setOffsetY, startX, startY)
-      //       : handleMouseMove(canvasRef, e.touches[0], isDrawing, currentShape, setCurrentShape, shape, offsetX, offsetY, zoomLevel);
-      // }}
-
-      // onTouchEnd={() => {
-      //   e.preventDefault();
-      //   e.stopPropagation();
-      //   shape === 'select' ? handleSelectUp(canvasRef, isDragging, setIsDragging, setDraggingIndex,
-      //     setIsResizing, setResizingIndex, isResizing, panning, setPanning, allshapes, user)
-      //     : shape === "pan" ? handleMouseUpPanning(setIsPanDragging)
-      //       : handleMouseUp(canvasRef, isDrawing, currentShape, allshapes, setCurrentShape, setAllshapes, setIsDrawing, setShape, user);
-      // }}
       />
     </div>
   );
